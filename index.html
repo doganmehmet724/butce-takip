@@ -14,16 +14,41 @@
   <style>
     :root {
       --bg: #0b1120;
-      --card-bg: #1e293b;
-      --border: #334155;
+      --card-bg: rgba(30, 41, 59, 0.9);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-color: #f8fafc;
+      --input-bg: #0f172a;
+      --input-border: #334155;
+      --input-color: #f8fafc;
+      --header-bg: rgba(15, 23, 42, 0.95);
+      --btn-bg: #1e293b;
+      --btn-border: #334155;
+      --btn-text: #cbd5e1;
     }
+
+    html.light {
+      --bg: #f1f5f9;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --card-border: rgba(203, 213, 225, 0.9);
+      --text-color: #0f172a;
+      --input-bg: #f8fafc;
+      --input-border: #cbd5e1;
+      --input-color: #0f172a;
+      --header-bg: rgba(255, 255, 255, 0.95);
+      --btn-bg: #f1f5f9;
+      --btn-border: #cbd5e1;
+      --btn-text: #334155;
+    }
+
     body {
-      background-color: #0b1120;
-      color: #f8fafc;
+      background-color: var(--bg);
+      color: var(--text-color);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
+
     .custom-scroll::-webkit-scrollbar {
       display: none;
     }
@@ -31,12 +56,16 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
     .glass-card {
-      background: rgba(30, 41, 59, 0.9);
+      background: var(--card-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      transition: background 0.25s ease, border 0.25s ease;
     }
+
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
       -webkit-appearance: none; 
@@ -45,11 +74,11 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
-    /* 15-16px font size on mobile prevents unwanted Safari/Chrome viewport zoom on focus */
+
     .row-input {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: #f8fafc;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--input-color);
       border-radius: 10px;
       padding: 9px 12px;
       font-size: 15px;
@@ -64,11 +93,49 @@
     .row-input:focus {
       outline: none;
       border-color: #10b981;
-      background: #1e293b;
       box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
     }
 
-    /* Privacy Mode Masking for Amount Inputs */
+    /* Light mode specific overrides */
+    html.light .text-white {
+      color: #0f172a !important;
+    }
+    html.light .text-slate-200 {
+      color: #1e293b !important;
+    }
+    html.light .text-slate-300 {
+      color: #334155 !important;
+    }
+    html.light .text-slate-400 {
+      color: #64748b !important;
+    }
+    html.light .bg-slate-900\/95,
+    html.light .bg-slate-900,
+    html.light .bg-slate-900\/80,
+    html.light .bg-slate-900\/70,
+    html.light .bg-slate-900\/60 {
+      background-color: var(--header-bg) !important;
+    }
+    html.light .bg-slate-800,
+    html.light .bg-slate-800\/80,
+    html.light .bg-slate-800\/70,
+    html.light .bg-slate-800\/90 {
+      background-color: var(--btn-bg) !important;
+      border-color: var(--btn-border) !important;
+      color: var(--btn-text) !important;
+    }
+    html.light .border-slate-800,
+    html.light .border-slate-700,
+    html.light .border-slate-800\/80,
+    html.light .border-slate-700\/80,
+    html.light .divide-slate-800\/80 {
+      border-color: var(--card-border) !important;
+    }
+    html.light .hover\:bg-slate-800\/50:hover {
+      background-color: #f1f5f9 !important;
+    }
+
+    /* Privacy Mode Masking */
     body.privacy-mode .privacy-mask-input {
       -webkit-text-security: disc !important;
       letter-spacing: 2.5px;
@@ -94,7 +161,7 @@
   </div>
 
   <!-- ================= TOP MOBILE APP BAR ================= -->
-  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3.5 py-2.5 shadow-xl">
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3.5 py-2.5 shadow-xl transition">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
       
       <!-- Brand & Active User Profile -->
@@ -122,7 +189,7 @@
           </div>
           <p class="text-[10px] text-slate-400 truncate flex items-center gap-1">
             <span>👤</span>
-            <span id="header-user-name" onclick="openProfileListModal()" class="cursor-pointer hover:underline text-emerald-300 font-bold truncate">Kullanıcı 1</span>
+            <span id="header-user-name" onclick="openProfileListModal()" class="cursor-pointer hover:underline text-emerald-400 font-bold truncate">Kullanıcı 1</span>
             <span class="text-slate-600">•</span>
             <span id="header-last-saved-time" class="text-slate-400">Kayıt: --:--</span>
           </p>
@@ -131,6 +198,11 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-1.5 shrink-0">
+        <!-- Theme Toggle Button (Dark / Light) -->
+        <button id="btn-theme-toggle" onclick="toggleTheme()" title="Koyu / Açık Tema Değiştir" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold active:scale-95 transition flex items-center justify-center">
+          <span id="theme-icon">☀️</span>
+        </button>
+
         <!-- Privacy Mode Toggle Button (Eye) -->
         <button id="btn-privacy-toggle" onclick="togglePrivacyMode()" title="Gizlilik Modu (Tutarları Gizle / Göster)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
           <span id="privacy-icon">👁️</span>
@@ -191,12 +263,12 @@
 
       <!-- 4. AY SONU NET KALAN / BİRİKİM -->
       <div class="glass-card p-3 rounded-xl border-2 border-emerald-500 bg-emerald-950/20 shadow-md">
-        <div class="flex justify-between items-center text-emerald-300">
+        <div class="flex justify-between items-center text-emerald-400">
           <span class="text-[9.5px] font-extrabold uppercase tracking-wider">NET KALAN</span>
           <span class="text-xs">🎯</span>
         </div>
-        <div id="kpi-month-net" class="text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5">0 TL</div>
-        <div class="text-[9.5px] text-emerald-400/80">Ay sonu net nakit</div>
+        <div id="kpi-month-net" class="text-base sm:text-xl md:text-2xl font-black text-emerald-400 mt-0.5">0 TL</div>
+        <div class="text-[9.5px] text-emerald-500/80">Ay sonu net nakit</div>
       </div>
 
       <!-- 5. KÜMÜLATİF TOPLAM KASA / BİRİKİM -->
@@ -205,7 +277,7 @@
           <span class="text-[9.5px] font-bold uppercase tracking-wider">Kümülatif Toplam Kasa</span>
           <span class="text-xs">💰</span>
         </div>
-        <div id="kpi-cumulative-total" class="text-base sm:text-lg md:text-xl font-black text-teal-300 mt-0.5">0 TL</div>
+        <div id="kpi-cumulative-total" class="text-base sm:text-lg md:text-xl font-black text-teal-400 mt-0.5">0 TL</div>
         <div class="text-[9.5px] text-slate-400">Önceki aylar dahil birikim</div>
       </div>
 
@@ -361,7 +433,7 @@
               <th class="py-2 px-2.5 font-semibold">Yaşam Gider</th>
               <th class="py-2 px-2.5 font-semibold">Borç Ödemesi</th>
               <th class="py-2 px-2.5 font-semibold text-emerald-400">Net Kalan</th>
-              <th class="py-2 px-2.5 font-semibold text-teal-300">Toplam Kasa</th>
+              <th class="py-2 px-2.5 font-semibold text-teal-400">Toplam Kasa</th>
             </tr>
           </thead>
           <tbody id="master-summary-tbody" class="divide-y divide-slate-800/80 text-[11px]">
@@ -381,6 +453,9 @@
         <p id="bottom-bar-net" class="text-sm font-black text-emerald-400 leading-tight">0 TL</p>
       </div>
       <div class="flex items-center gap-1.5">
+        <button onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs active:scale-95 shadow">
+          <span id="mobile-theme-icon">☀️</span>
+        </button>
         <button onclick="togglePrivacyMode()" class="p-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs active:scale-95 shadow">
           <span id="mobile-privacy-icon">👁️</span>
         </button>
@@ -390,7 +465,7 @@
       </div>
       <div class="text-right">
         <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Kümülatif Toplam Kasa</span>
-        <p id="bottom-bar-cumul" class="text-sm font-black text-teal-300 leading-tight">0 TL</p>
+        <p id="bottom-bar-cumul" class="text-sm font-black text-teal-400 leading-tight">0 TL</p>
       </div>
     </div>
   </aside>
@@ -527,13 +602,16 @@
       </div>
 
       <div class="space-y-2 text-xs">
+        <button onclick="toggleTheme(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
+          <span id="menu-theme-icon">☀️</span> <span id="menu-theme-label">Açık Moda Geç</span>
+        </button>
         <button onclick="togglePrivacyMode(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
           <span id="menu-privacy-icon">👁️</span> Gizlilik Modu (Tutarları Gizle/Göster)
         </button>
         <button onclick="openProfileListModal(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
           <span>👥</span> Kullanıcıları Yönet / Profil Değiştir
         </button>
-        <button onclick="manualSave(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 font-bold text-left flex items-center gap-2 transition">
+        <button onclick="manualSave(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold text-left flex items-center gap-2 transition">
           <span>💾</span> Değişiklikleri Şimdi Kaydet
         </button>
         <button onclick="copyPrevMonth(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
@@ -572,10 +650,11 @@
       }));
     }
 
-    // Default System State with Multi-User & PIN Architecture
+    // Default System State with Multi-User, PIN & Theme Architecture
     function createInitialAppState() {
       const firstUserId = 'user-' + Date.now();
       return {
+        theme: 'dark',
         isPrivacyMode: false,
         activeUserId: firstUserId,
         users: [
@@ -628,6 +707,10 @@
         appState.isPrivacyMode = false;
       }
 
+      if (!appState.theme) {
+        appState.theme = 'dark';
+      }
+
       let activeUser = getActiveUser();
       if (!activeUser) {
         appState.activeUserId = appState.users[0].id;
@@ -638,6 +721,7 @@
         activeUser.months = create12MonthsDataset();
       }
 
+      applyTheme(appState.theme);
       updatePrivacyUI();
       updateHeaderProfile();
       render();
@@ -650,6 +734,38 @@
 
     function saveAppState() {
       localStorage.setItem('personal_multi_user_budget_v8', JSON.stringify(appState));
+    }
+
+    // ================= THEME TOGGLE (DARK / LIGHT MODE) =================
+    function toggleTheme() {
+      const newTheme = appState.theme === 'light' ? 'dark' : 'light';
+      appState.theme = newTheme;
+      saveAppState();
+      applyTheme(newTheme);
+      showToast(newTheme === 'light' ? '☀️ Açık Tema aktif edildi!' : '🌙 Koyu Tema aktif edildi!');
+    }
+
+    function applyTheme(theme) {
+      const isLight = theme === 'light';
+      if (isLight) {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f1f5f9');
+      } else {
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0b1120');
+      }
+
+      const iconEl = document.getElementById('theme-icon');
+      const mobIconEl = document.getElementById('mobile-theme-icon');
+      const menuIconEl = document.getElementById('menu-theme-icon');
+      const menuLabelEl = document.getElementById('menu-theme-label');
+
+      if (iconEl) iconEl.innerText = isLight ? '🌙' : '☀️';
+      if (mobIconEl) mobIconEl.innerText = isLight ? '🌙' : '☀️';
+      if (menuIconEl) menuIconEl.innerText = isLight ? '🌙' : '☀️';
+      if (menuLabelEl) menuLabelEl.innerText = isLight ? 'Koyu Moda Geç' : 'Açık Moda Geç';
     }
 
     function getActiveUser() {
@@ -790,7 +906,6 @@
         initialEl.innerText = (targetUser.name || 'K').trim().charAt(0).toUpperCase();
       }
 
-      // If initial lock, cancel button switches to an unlocked user if any exists
       if (isInitialLock) {
         cancelBtn.innerText = "Kullanıcı Değiştir";
         cancelBtn.onclick = () => {
@@ -823,7 +938,6 @@
       if (!targetUser) return;
 
       if (targetUser.pin === enteredPin) {
-        // Correct PIN
         appState.activeUserId = targetUser.id;
         saveAppState();
         updateHeaderProfile();
@@ -833,7 +947,6 @@
         pendingSwitchUserId = null;
         showToast(`🔓 "${targetUser.name}" profili açıldı!`);
       } else {
-        // Incorrect PIN
         errEl.classList.remove('hidden');
         box.classList.add('animate-shake');
         inputEl.value = '';
@@ -1170,7 +1283,7 @@
       if (curCalc.netMonth < 0 && !appState.isPrivacyMode) {
         netEl.className = "text-base sm:text-xl md:text-2xl font-black text-rose-400 mt-0.5";
       } else {
-        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5";
+        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-400 mt-0.5";
       }
 
       document.getElementById('kpi-cumulative-total').innerText = formatCurrency(curCalc.cumulativeSavings);
@@ -1217,7 +1330,7 @@
       if (curCalc.netMonth < 0 && !appState.isPrivacyMode) {
         netEl.className = "text-base sm:text-xl md:text-2xl font-black text-rose-400 mt-0.5";
       } else {
-        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5";
+        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-400 mt-0.5";
       }
 
       document.getElementById('kpi-cumulative-total').innerText = formatCurrency(curCalc.cumulativeSavings);
@@ -1302,7 +1415,7 @@
                      onkeypress="if(!/[0-9]/.test(event.key)) event.preventDefault();"
                      oninput="updateRowAmount('${category}', ${idx}, this)" 
                      class="row-input privacy-mask-input w-full text-right font-black ${
-                       category === 'incomes' ? 'text-emerald-400' : category === 'expenses' ? 'text-rose-400' : 'text-amber-300'
+                       category === 'incomes' ? 'text-emerald-400' : category === 'expenses' ? 'text-rose-400' : 'text-amber-400'
                      }">
               <span class="text-[9.5px] text-slate-400 font-semibold shrink-0">TL</span>
             </div>
@@ -1337,13 +1450,13 @@
         tr.innerHTML = `
           <td class="py-2 px-2.5 flex items-center gap-1">
             <span class="text-white whitespace-nowrap">${m.name}</span>
-            ${isCurrent ? '<span class="text-[8.5px] bg-emerald-500/20 text-emerald-300 px-1 py-0.2 rounded">Seçili</span>' : ''}
+            ${isCurrent ? '<span class="text-[8.5px] bg-emerald-500/20 text-emerald-400 px-1 py-0.2 rounded">Seçili</span>' : ''}
           </td>
           <td class="py-2 px-2.5 text-emerald-400 font-medium whitespace-nowrap">${formatCurrency(c.totalInc)}</td>
           <td class="py-2 px-2.5 text-rose-400 font-medium whitespace-nowrap">${formatCurrency(c.totalExp)}</td>
-          <td class="py-2 px-2.5 text-amber-300 font-medium whitespace-nowrap">${formatCurrency(c.totalDebts)}</td>
-          <td class="py-2 px-2.5 ${(c.netMonth >= 0 || appState.isPrivacyMode) ? 'text-emerald-300 font-bold' : 'text-rose-400 font-bold'} whitespace-nowrap">${formatCurrency(c.netMonth)}</td>
-          <td class="py-2 px-2.5 text-teal-300 font-extrabold whitespace-nowrap">${formatCurrency(c.cumulativeSavings)}</td>
+          <td class="py-2 px-2.5 text-amber-400 font-medium whitespace-nowrap">${formatCurrency(c.totalDebts)}</td>
+          <td class="py-2 px-2.5 ${(c.netMonth >= 0 || appState.isPrivacyMode) ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'} whitespace-nowrap">${formatCurrency(c.netMonth)}</td>
+          <td class="py-2 px-2.5 text-teal-400 font-extrabold whitespace-nowrap">${formatCurrency(c.cumulativeSavings)}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -1519,6 +1632,7 @@
               appState = parsed;
             } else {
               appState = {
+                theme: 'dark',
                 isPrivacyMode: false,
                 activeUserId: 'imported-user-1',
                 users: [{
@@ -1534,6 +1648,7 @@
               };
             }
             saveAppState();
+            applyTheme(appState.theme || 'dark');
             updatePrivacyUI();
             updateHeaderProfile();
             render();
