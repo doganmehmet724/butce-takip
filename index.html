@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Kişisel Bütçe & Borç Defteri</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
@@ -368,16 +369,16 @@
 
   <!-- ================= JAVASCRIPT LOGIC ================= -->
   <script>
-    // Fixed 12-Month Clean Dataset (No addition/removal of months)
+    // 100% Clean Starter Dataset: Each category starts with 1 blank default row ready to type
     function createCleanDataset() {
       return {
         activeMonthId: 1,
         months: Array.from({ length: 12 }, (_, i) => ({
           id: i + 1,
           name: `${i + 1}. Ay`,
-          incomes: [],
-          expenses: [],
-          debts: []
+          incomes: [{ id: 'inc-' + (i+1) + '-1', name: '', amount: '' }],
+          expenses: [{ id: 'exp-' + (i+1) + '-1', name: '', amount: '' }],
+          debts: [{ id: 'dbt-' + (i+1) + '-1', name: '', amount: '' }]
         }))
       };
     }
@@ -391,8 +392,9 @@
       localStorage.removeItem('personal_finance_tracker_data_v1');
       localStorage.removeItem('personal_clean_budget_data_v3');
       localStorage.removeItem('personal_clean_budget_data_v4');
+      localStorage.removeItem('personal_clean_budget_data_v5');
 
-      const saved = localStorage.getItem('personal_clean_budget_data_v5');
+      const saved = localStorage.getItem('personal_clean_budget_data_v6');
       if (saved) {
         try {
           data = JSON.parse(saved);
@@ -403,13 +405,16 @@
         data = createCleanDataset();
       }
 
-      // Ensure exactly 12 months with standard names
+      // Ensure each category has at least 1 default row ready
       if (!data || !data.months || data.months.length !== 12) {
         data = createCleanDataset();
       } else {
         data.months.forEach((m, idx) => {
           m.id = idx + 1;
           m.name = `${idx + 1}. Ay`;
+          if (!m.incomes || m.incomes.length === 0) m.incomes = [{ id: 'inc-' + idx + '-1', name: '', amount: '' }];
+          if (!m.expenses || m.expenses.length === 0) m.expenses = [{ id: 'exp-' + idx + '-1', name: '', amount: '' }];
+          if (!m.debts || m.debts.length === 0) m.debts = [{ id: 'dbt-' + idx + '-1', name: '', amount: '' }];
         });
       }
 
@@ -417,7 +422,7 @@
     }
 
     function save() {
-      localStorage.setItem('personal_clean_budget_data_v5', JSON.stringify(data));
+      localStorage.setItem('personal_clean_budget_data_v6', JSON.stringify(data));
     }
 
     function formatCurrency(val) {
@@ -685,6 +690,10 @@
       const curMonth = getActiveMonth();
       if (curMonth[category]) {
         curMonth[category].splice(idx, 1);
+        // If the user deletes all rows, keep at least 1 clean default empty row ready
+        if (curMonth[category].length === 0) {
+          curMonth[category].push({ id: 'item-' + Date.now(), name: '', amount: '' });
+        }
         save();
         render();
       }
@@ -783,10 +792,10 @@
 
     function clearCurrentMonth() {
       const curMonth = getActiveMonth();
-      if (confirm(`'${curMonth.name}' içerisindeki tüm kalemleri silmek istediğinizden emin misiniz?`)) {
-        curMonth.incomes = [];
-        curMonth.expenses = [];
-        curMonth.debts = [];
+      if (confirm(`'${curMonth.name}' içerisindeki tüm kalemleri temizlemek istediğinizden emin misiniz?`)) {
+        curMonth.incomes = [{ id: 'inc-' + Date.now(), name: '', amount: '' }];
+        curMonth.expenses = [{ id: 'exp-' + Date.now(), name: '', amount: '' }];
+        curMonth.debts = [{ id: 'dbt-' + Date.now(), name: '', amount: '' }];
         save();
         render();
       }
