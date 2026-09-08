@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bütçe Defteri">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0b1120">
   <title>Kişisel Bütçe & Borç Defteri</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
@@ -71,6 +74,15 @@
       letter-spacing: 2.5px;
       color: #94a3b8 !important;
     }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shake 0.35s ease-in-out;
+    }
   </style>
 </head>
 <body class="min-h-screen pb-28 md:pb-16 selection:bg-emerald-500 selection:text-white">
@@ -93,7 +105,7 @@
             <img id="header-user-photo" class="w-full h-full object-cover hidden" alt="Profil">
             <span id="header-user-initial" class="text-emerald-400 font-extrabold text-sm">K</span>
           </div>
-          <span class="absolute -bottom-1 -right-1 bg-emerald-500 text-slate-950 rounded-full w-4 h-4 text-[9px] font-black flex items-center justify-center border-2 border-slate-900">
+          <span id="header-user-lock-icon" class="absolute -bottom-1 -right-1 bg-emerald-500 text-slate-950 rounded-full w-4 h-4 text-[9px] font-black flex items-center justify-center border-2 border-slate-900">
             🔄
           </span>
         </button>
@@ -410,9 +422,31 @@
     </div>
   </div>
 
-  <!-- ================= MODAL: CREATE / EDIT USER PROFILE (WITH PHOTO) ================= -->
+  <!-- ================= MODAL: PIN / PASSWORD LOCK PROMPT ================= -->
+  <div id="modal-pin-prompt" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div id="pin-prompt-box" class="bg-slate-900 border border-slate-700 rounded-3xl max-w-xs w-full p-6 text-center space-y-4 shadow-2xl transition">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-800 border-2 border-emerald-500/50 overflow-hidden flex items-center justify-center shadow-lg">
+        <img id="pin-prompt-photo" class="w-full h-full object-cover hidden" alt="Profil">
+        <span id="pin-prompt-initial" class="text-2xl font-black text-emerald-400">K</span>
+      </div>
+      <div>
+        <h3 id="pin-prompt-name" class="text-sm font-extrabold text-white">Kullanıcı Adı</h3>
+        <p class="text-[11px] text-slate-400 mt-0.5">Bu profile erişmek için PIN / Şifrenizi girin</p>
+      </div>
+      <div>
+        <input type="password" id="input-pin-attempt" placeholder="••••" onkeydown="if(event.key==='Enter') submitPinAttempt()" class="row-input w-full text-center text-lg tracking-widest font-black text-white">
+        <p id="pin-error-msg" class="text-[11px] text-rose-400 font-semibold mt-1 hidden">❌ Hatalı şifre, lütfen tekrar deneyin!</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="btn-cancel-pin" onclick="cancelPinPrompt()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">İptal</button>
+        <button onclick="submitPinAttempt()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition">Giriş Yap</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CREATE / EDIT USER PROFILE (WITH PHOTO & PIN) ================= -->
   <div id="modal-user-form" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 space-y-3.5 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
         <h3 id="user-form-modal-title" class="text-sm font-bold text-white flex items-center gap-1.5">
           <span>👤</span> Kullanıcı Profili
@@ -421,27 +455,27 @@
       </div>
 
       <!-- Photo Upload Area -->
-      <div class="flex flex-col items-center gap-2">
+      <div class="flex flex-col items-center gap-1.5">
         <div class="relative group">
-          <div class="w-20 h-20 rounded-2xl bg-slate-800 border-2 border-dashed border-slate-600 hover:border-emerald-500 overflow-hidden flex items-center justify-center shadow-lg transition">
+          <div class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-dashed border-slate-600 hover:border-emerald-500 overflow-hidden flex items-center justify-center shadow-lg transition">
             <img id="user-form-photo-preview" class="w-full h-full object-cover hidden" alt="Önizleme">
-            <div id="user-form-avatar-placeholder" class="text-2xl font-bold text-emerald-400">
+            <div id="user-form-avatar-placeholder" class="text-xl font-bold text-emerald-400">
               👤
             </div>
           </div>
           <!-- Upload Button Overlay -->
-          <label class="absolute -bottom-1 -right-1 bg-emerald-600 hover:bg-emerald-500 text-white p-1.5 rounded-xl shadow cursor-pointer active:scale-95 transition flex items-center justify-center">
+          <label class="absolute -bottom-1 -right-1 bg-emerald-600 hover:bg-emerald-500 text-white p-1 rounded-xl shadow cursor-pointer active:scale-95 transition flex items-center justify-center text-xs">
             <span>📷</span>
             <input type="file" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
           </label>
         </div>
         <div class="flex items-center gap-2">
-          <label class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer">
+          <label class="text-[10.5px] font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer">
             Fotoğraf Seç
             <input type="file" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
           </label>
           <span class="text-slate-600 text-xs">•</span>
-          <button type="button" onclick="removeUploadedPhoto()" class="text-[11px] font-semibold text-rose-400 hover:text-rose-300">
+          <button type="button" onclick="removeUploadedPhoto()" class="text-[10.5px] font-semibold text-rose-400 hover:text-rose-300">
             Kaldır
           </button>
         </div>
@@ -451,6 +485,23 @@
       <div>
         <label class="block text-[11px] text-slate-400 font-semibold mb-1">Kullanıcı Adı:</label>
         <input type="text" id="user-form-name-input" placeholder="Örn: Mehmet Doğan, Ayşe, Ev Bütçesi" class="row-input w-full font-bold text-white">
+      </div>
+
+      <!-- PIN / Password Protection Input -->
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <label class="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+            <span>🔒</span> Profil Şifresi / PIN:
+          </label>
+          <span class="text-[9.5px] text-slate-500 font-medium">İsteğe bağlı</span>
+        </div>
+        <div class="relative">
+          <input type="password" id="user-form-pin-input" placeholder="Şifresiz bırakmak için boş geçin" class="row-input w-full font-bold text-white pr-9 text-xs">
+          <button type="button" onclick="toggleFormPinVisibility()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">
+            👁️
+          </button>
+        </div>
+        <p class="text-[9.5px] text-slate-500 mt-0.5">Şifre koyarsanız bu profile sadece PIN ile girilebilir.</p>
       </div>
 
       <!-- Action Buttons -->
@@ -521,7 +572,7 @@
       }));
     }
 
-    // Default System State with Multi-User Architecture & Privacy Mode
+    // Default System State with Multi-User & PIN Architecture
     function createInitialAppState() {
       const firstUserId = 'user-' + Date.now();
       return {
@@ -532,6 +583,7 @@
             id: firstUserId,
             name: "Kullanıcı 1",
             photo: null,
+            pin: null,
             createdAt: new Date().toISOString(),
             lastSaved: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
             activeMonthId: 1,
@@ -545,6 +597,7 @@
     let appState = null;
     let tempPhotoBase64 = null;
     let editingUserId = null;
+    let pendingSwitchUserId = null;
 
     function init() {
       // Clear legacy storage keys
@@ -567,7 +620,6 @@
         appState = createInitialAppState();
       }
 
-      // Integrity checks
       if (!appState || !appState.users || appState.users.length === 0) {
         appState = createInitialAppState();
       }
@@ -589,6 +641,11 @@
       updatePrivacyUI();
       updateHeaderProfile();
       render();
+
+      // If active user has a PIN, lock on initial page load
+      if (activeUser.pin && activeUser.pin.trim() !== '') {
+        promptPinForUser(activeUser.id, true);
+      }
     }
 
     function saveAppState() {
@@ -682,6 +739,7 @@
       const nameEl = document.getElementById('header-user-name');
       const titleEl = document.getElementById('header-title-text');
       const timeEl = document.getElementById('header-last-saved-time');
+      const lockIcon = document.getElementById('header-user-lock-icon');
 
       if (user.photo) {
         photoEl.src = user.photo;
@@ -694,9 +752,101 @@
         initialEl.innerText = initLetter || 'K';
       }
 
+      if (lockIcon) {
+        lockIcon.innerText = (user.pin && user.pin.trim() !== '') ? '🔒' : '🔄';
+      }
+
       nameEl.innerText = user.name || 'Kullanıcı';
       titleEl.innerText = `${user.name || 'Kullanıcı'}'ın Bütçesi`;
       timeEl.innerText = `Kayıt: ${user.lastSaved || '--:--'}`;
+    }
+
+    // ================= PIN / PASSWORD PROTECTION LOGIC =================
+    function promptPinForUser(userId, isInitialLock = false) {
+      const targetUser = appState.users.find(u => u.id === userId);
+      if (!targetUser) return;
+
+      pendingSwitchUserId = userId;
+
+      const modal = document.getElementById('modal-pin-prompt');
+      const photoEl = document.getElementById('pin-prompt-photo');
+      const initialEl = document.getElementById('pin-prompt-initial');
+      const nameEl = document.getElementById('pin-prompt-name');
+      const inputEl = document.getElementById('input-pin-attempt');
+      const errEl = document.getElementById('pin-error-msg');
+      const cancelBtn = document.getElementById('btn-cancel-pin');
+
+      nameEl.innerText = targetUser.name || 'Kullanıcı';
+      inputEl.value = '';
+      errEl.classList.add('hidden');
+
+      if (targetUser.photo) {
+        photoEl.src = targetUser.photo;
+        photoEl.classList.remove('hidden');
+        initialEl.classList.add('hidden');
+      } else {
+        photoEl.classList.add('hidden');
+        initialEl.classList.remove('hidden');
+        initialEl.innerText = (targetUser.name || 'K').trim().charAt(0).toUpperCase();
+      }
+
+      // If initial lock, cancel button switches to an unlocked user if any exists
+      if (isInitialLock) {
+        cancelBtn.innerText = "Kullanıcı Değiştir";
+        cancelBtn.onclick = () => {
+          modal.classList.add('hidden');
+          openProfileListModal();
+        };
+      } else {
+        cancelBtn.innerText = "İptal";
+        cancelBtn.onclick = cancelPinPrompt;
+      }
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        inputEl.focus();
+      }, 50);
+    }
+
+    function cancelPinPrompt() {
+      document.getElementById('modal-pin-prompt').classList.add('hidden');
+      pendingSwitchUserId = null;
+    }
+
+    function submitPinAttempt() {
+      const inputEl = document.getElementById('input-pin-attempt');
+      const errEl = document.getElementById('pin-error-msg');
+      const box = document.getElementById('pin-prompt-box');
+      const enteredPin = inputEl.value;
+
+      const targetUser = appState.users.find(u => u.id === pendingSwitchUserId);
+      if (!targetUser) return;
+
+      if (targetUser.pin === enteredPin) {
+        // Correct PIN
+        appState.activeUserId = targetUser.id;
+        saveAppState();
+        updateHeaderProfile();
+        render();
+        document.getElementById('modal-pin-prompt').classList.add('hidden');
+        closeProfileListModal();
+        pendingSwitchUserId = null;
+        showToast(`🔓 "${targetUser.name}" profili açıldı!`);
+      } else {
+        // Incorrect PIN
+        errEl.classList.remove('hidden');
+        box.classList.add('animate-shake');
+        inputEl.value = '';
+        inputEl.focus();
+        setTimeout(() => {
+          box.classList.remove('animate-shake');
+        }, 400);
+      }
+    }
+
+    function toggleFormPinVisibility() {
+      const pinInput = document.getElementById('user-form-pin-input');
+      pinInput.type = pinInput.type === 'password' ? 'text' : 'password';
     }
 
     // ================= MULTI-USER MANAGEMENT =================
@@ -716,6 +866,7 @@
       appState.users.forEach(user => {
         const isActive = user.id === appState.activeUserId;
         const initial = (user.name || 'K').trim().charAt(0).toUpperCase();
+        const hasPin = user.pin && user.pin.trim() !== '';
         
         const userCalculations = computeAllForUser(user);
         const lastCalc = userCalculations[12] || { cumulativeSavings: 0 };
@@ -736,16 +887,18 @@
         card.innerHTML = `
           <div class="flex items-center gap-3 min-w-0">
             <!-- Avatar -->
-            <div class="w-11 h-11 rounded-xl bg-slate-900 border border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+            <div class="relative w-11 h-11 rounded-xl bg-slate-900 border border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
               ${user.photo 
                 ? `<img src="${user.photo}" class="w-full h-full object-cover">` 
                 : `<span class="text-emerald-400 font-black text-sm">${initial}</span>`
               }
+              ${hasPin ? '<span class="absolute bottom-0 right-0 bg-slate-900/90 text-[10px] px-0.5 rounded">🔒</span>' : ''}
             </div>
             <!-- Info -->
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
                 <span class="font-bold text-white text-xs sm:text-sm truncate">${user.name}</span>
+                ${hasPin ? '<span class="text-[10px] text-amber-400" title="Şifreli Profil">🔒</span>' : ''}
                 ${isActive ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 font-bold px-1.5 py-0.2 rounded border border-emerald-500/30">Aktif</span>' : ''}
               </div>
               <span class="text-[10px] text-slate-400">12 Ay Kasa: <strong class="${totalSavings >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${formatCurrency(totalSavings)}</strong></span>
@@ -754,7 +907,7 @@
 
           <!-- Actions -->
           <div class="flex items-center gap-1.5 no-switch shrink-0">
-            <button onclick="openEditUserModal('${user.id}')" title="Profili Düzenle" class="p-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs transition">
+            <button onclick="openEditUserModal('${user.id}')" title="Profili Düzenle / Şifre Değiştir" class="p-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs transition">
               ✏️
             </button>
             ${appState.users.length > 1 ? `
@@ -769,13 +922,24 @@
     }
 
     function switchUser(userId) {
-      appState.activeUserId = userId;
-      saveAppState();
-      updateHeaderProfile();
-      render();
-      closeProfileListModal();
-      const u = getActiveUser();
-      showToast(`👤 "${u.name}" bütçesine geçildi!`);
+      if (userId === appState.activeUserId) {
+        closeProfileListModal();
+        return;
+      }
+      const targetUser = appState.users.find(u => u.id === userId);
+      if (!targetUser) return;
+
+      if (targetUser.pin && targetUser.pin.trim() !== '') {
+        closeProfileListModal();
+        promptPinForUser(userId);
+      } else {
+        appState.activeUserId = userId;
+        saveAppState();
+        updateHeaderProfile();
+        render();
+        closeProfileListModal();
+        showToast(`👤 "${targetUser.name}" bütçesine geçildi!`);
+      }
     }
 
     function openCreateUserModal() {
@@ -784,6 +948,8 @@
       tempPhotoBase64 = null;
       document.getElementById('user-form-modal-title').innerHTML = '<span>➕</span> Yeni Kullanıcı Oluştur';
       document.getElementById('user-form-name-input').value = '';
+      document.getElementById('user-form-pin-input').value = '';
+      document.getElementById('user-form-pin-input').type = 'password';
       
       const imgPreview = document.getElementById('user-form-photo-preview');
       const avatarPlaceholder = document.getElementById('user-form-avatar-placeholder');
@@ -805,6 +971,8 @@
       tempPhotoBase64 = user.photo || null;
       document.getElementById('user-form-modal-title').innerHTML = '<span>✏️</span> Profili Düzenle';
       document.getElementById('user-form-name-input').value = user.name || '';
+      document.getElementById('user-form-pin-input').value = user.pin || '';
+      document.getElementById('user-form-pin-input').type = 'password';
 
       const imgPreview = document.getElementById('user-form-photo-preview');
       const avatarPlaceholder = document.getElementById('user-form-avatar-placeholder');
@@ -828,7 +996,7 @@
       document.getElementById('modal-user-form').classList.add('hidden');
     }
 
-    // Photo Upload Optimization (~140px for lightweight localStorage)
+    // Photo Upload Optimization (~140px)
     function handleProfilePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -880,13 +1048,16 @@
 
     function saveUserForm() {
       const nameInput = document.getElementById('user-form-name-input');
+      const pinInput = document.getElementById('user-form-pin-input');
       const name = nameInput.value.trim() || 'Yeni Kullanıcı';
+      const pin = pinInput.value.trim() || null;
 
       if (editingUserId) {
         const user = appState.users.find(u => u.id === editingUserId);
         if (user) {
           user.name = name;
           user.photo = tempPhotoBase64;
+          user.pin = pin;
           user.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
         }
       } else {
@@ -895,6 +1066,7 @@
           id: newUserId,
           name: name,
           photo: tempPhotoBase64,
+          pin: pin,
           createdAt: new Date().toISOString(),
           lastSaved: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
           activeMonthId: 1,
@@ -1353,6 +1525,7 @@
                   id: 'imported-user-1',
                   name: parsed.userName || 'İçe Aktarılan Kullanıcı',
                   photo: null,
+                  pin: null,
                   createdAt: new Date().toISOString(),
                   lastSaved: parsed.lastSaved || '--:--',
                   activeMonthId: parsed.activeMonthId || 1,
