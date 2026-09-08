@@ -64,11 +64,18 @@
       background: #1e293b;
       box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
     }
+
+    /* Privacy Mode Masking for Amount Inputs */
+    body.privacy-mode .privacy-mask-input {
+      -webkit-text-security: disc !important;
+      letter-spacing: 2.5px;
+      color: #94a3b8 !important;
+    }
   </style>
 </head>
 <body class="min-h-screen pb-28 md:pb-16 selection:bg-emerald-500 selection:text-white">
 
-  <!-- ================= SAVE TOAST NOTIFICATION ================= -->
+  <!-- ================= SAVE / PRIVACY TOAST NOTIFICATION ================= -->
   <div id="save-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold transition-all duration-300 opacity-0 pointer-events-none -translate-y-4">
     <span class="text-sm">💾</span>
     <span id="save-toast-msg">Değişiklikler başarıyla kaydedildi!</span>
@@ -112,10 +119,16 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-1.5 shrink-0">
+        <!-- Privacy Mode Toggle Button (Eye) -->
+        <button id="btn-privacy-toggle" onclick="togglePrivacyMode()" title="Gizlilik Modu (Tutarları Gizle / Göster)" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
+          <span id="privacy-icon">👁️</span>
+          <span id="privacy-text" class="hidden sm:inline">Gizle</span>
+        </button>
+
         <!-- Prominent Save Button -->
         <button onclick="manualSave()" title="Kaydet (Ctrl + S)" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md flex items-center gap-1.5 active:scale-95 transition">
           <span>💾</span>
-          <span>Kaydet</span>
+          <span class="hidden sm:inline">Kaydet</span>
         </button>
         <button onclick="openProfileListModal()" title="Kullanıcı Değiştir / Ekle" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
           <span>👥</span>
@@ -355,8 +368,11 @@
         <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Ay Sonu Net Kalan</span>
         <p id="bottom-bar-net" class="text-sm font-black text-emerald-400 leading-tight">0 TL</p>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="manualSave()" class="px-3 py-1 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 active:scale-95 shadow">
+      <div class="flex items-center gap-1.5">
+        <button onclick="togglePrivacyMode()" class="p-2 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs active:scale-95 shadow">
+          <span id="mobile-privacy-icon">👁️</span>
+        </button>
+        <button onclick="manualSave()" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 active:scale-95 shadow">
           <span>💾</span> Kaydet
         </button>
       </div>
@@ -460,6 +476,9 @@
       </div>
 
       <div class="space-y-2 text-xs">
+        <button onclick="togglePrivacyMode(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
+          <span id="menu-privacy-icon">👁️</span> Gizlilik Modu (Tutarları Gizle/Göster)
+        </button>
         <button onclick="openProfileListModal(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
           <span>👥</span> Kullanıcıları Yönet / Profil Değiştir
         </button>
@@ -502,10 +521,11 @@
       }));
     }
 
-    // Default System State with Multi-User Architecture
+    // Default System State with Multi-User Architecture & Privacy Mode
     function createInitialAppState() {
       const firstUserId = 'user-' + Date.now();
       return {
+        isPrivacyMode: false,
         activeUserId: firstUserId,
         users: [
           {
@@ -552,17 +572,21 @@
         appState = createInitialAppState();
       }
 
+      if (appState.isPrivacyMode === undefined) {
+        appState.isPrivacyMode = false;
+      }
+
       let activeUser = getActiveUser();
       if (!activeUser) {
         appState.activeUserId = appState.users[0].id;
         activeUser = appState.users[0];
       }
 
-      // Ensure active user structure
       if (!activeUser.months || activeUser.months.length !== 12) {
         activeUser.months = create12MonthsDataset();
       }
 
+      updatePrivacyUI();
       updateHeaderProfile();
       render();
     }
@@ -611,6 +635,43 @@
       showToast(`✅ Değişiklikler kaydedildi! (${user ? user.lastSaved : ''})`);
     }
 
+    // ================= PRIVACY MODE (MASKELEME) =================
+    function togglePrivacyMode() {
+      appState.isPrivacyMode = !appState.isPrivacyMode;
+      saveAppState();
+      updatePrivacyUI();
+      render();
+      showToast(appState.isPrivacyMode ? "🙈 Gizlilik Modu: Tutarlar gizlendi (••••••)" : "👁️ Tutarlar tekrar görünür yapıldı.");
+    }
+
+    function updatePrivacyUI() {
+      const isPrivate = !!appState.isPrivacyMode;
+      if (isPrivate) {
+        document.body.classList.add('privacy-mode');
+      } else {
+        document.body.classList.remove('privacy-mode');
+      }
+
+      const privIcon = document.getElementById('privacy-icon');
+      const privText = document.getElementById('privacy-text');
+      const mobPrivIcon = document.getElementById('mobile-privacy-icon');
+      const menuPrivIcon = document.getElementById('menu-privacy-icon');
+
+      if (privIcon) privIcon.innerText = isPrivate ? '🙈' : '👁️';
+      if (privText) privText.innerText = isPrivate ? 'Göster' : 'Gizle';
+      if (mobPrivIcon) mobPrivIcon.innerText = isPrivate ? '🙈' : '👁️';
+      if (menuPrivIcon) menuPrivIcon.innerText = isPrivate ? '🙈' : '👁️';
+    }
+
+    // Currency Formatter with Privacy Masking
+    function formatCurrency(val) {
+      if (appState && appState.isPrivacyMode) {
+        return '•••••• TL';
+      }
+      if (isNaN(val)) val = 0;
+      return new Intl.NumberFormat('tr-TR').format(Math.round(val)) + ' TL';
+    }
+
     // Header Profile Display
     function updateHeaderProfile() {
       const user = getActiveUser();
@@ -656,7 +717,6 @@
         const isActive = user.id === appState.activeUserId;
         const initial = (user.name || 'K').trim().charAt(0).toUpperCase();
         
-        // Calculate user summary
         const userCalculations = computeAllForUser(user);
         const lastCalc = userCalculations[12] || { cumulativeSavings: 0 };
         const totalSavings = lastCalc.cumulativeSavings;
@@ -669,7 +729,6 @@
         }`;
 
         card.onclick = (e) => {
-          // If clicked action buttons inside card, do not switch
           if (e.target.closest('.no-switch')) return;
           switchUser(user.id);
         };
@@ -769,7 +828,7 @@
       document.getElementById('modal-user-form').classList.add('hidden');
     }
 
-    // Photo Upload Optimization (Resizes to ~140px for lightweight localStorage storage)
+    // Photo Upload Optimization (~140px for lightweight localStorage)
     function handleProfilePhotoUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -824,7 +883,6 @@
       const name = nameInput.value.trim() || 'Yeni Kullanıcı';
 
       if (editingUserId) {
-        // Edit existing user
         const user = appState.users.find(u => u.id === editingUserId);
         if (user) {
           user.name = name;
@@ -832,7 +890,6 @@
           user.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
         }
       } else {
-        // Create new user
         const newUserId = 'user-' + Date.now();
         const newUser = {
           id: newUserId,
@@ -917,11 +974,6 @@
       return computeAllForUser(user);
     }
 
-    function formatCurrency(val) {
-      if (isNaN(val)) val = 0;
-      return new Intl.NumberFormat('tr-TR').format(Math.round(val)) + ' TL';
-    }
-
     // Fast calculation updater
     function updateCalculationsOnly() {
       const user = getActiveUser();
@@ -943,7 +995,7 @@
 
       const netEl = document.getElementById('kpi-month-net');
       netEl.innerText = formatCurrency(curCalc.netMonth);
-      if (curCalc.netMonth < 0) {
+      if (curCalc.netMonth < 0 && !appState.isPrivacyMode) {
         netEl.className = "text-base sm:text-xl md:text-2xl font-black text-rose-400 mt-0.5";
       } else {
         netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5";
@@ -960,7 +1012,7 @@
       const bNet = document.getElementById('bottom-bar-net');
       if (bNet) {
         bNet.innerText = formatCurrency(curCalc.netMonth);
-        bNet.className = curCalc.netMonth >= 0 ? "text-sm font-black text-emerald-400 leading-tight" : "text-sm font-black text-rose-400 leading-tight";
+        bNet.className = (curCalc.netMonth >= 0 || appState.isPrivacyMode) ? "text-sm font-black text-emerald-400 leading-tight" : "text-sm font-black text-rose-400 leading-tight";
       }
       const bCum = document.getElementById('bottom-bar-cumul');
       if (bCum) bCum.innerText = formatCurrency(curCalc.cumulativeSavings);
@@ -990,7 +1042,7 @@
 
       const netEl = document.getElementById('kpi-month-net');
       netEl.innerText = formatCurrency(curCalc.netMonth);
-      if (curCalc.netMonth < 0) {
+      if (curCalc.netMonth < 0 && !appState.isPrivacyMode) {
         netEl.className = "text-base sm:text-xl md:text-2xl font-black text-rose-400 mt-0.5";
       } else {
         netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5";
@@ -1002,7 +1054,7 @@
       const bNet = document.getElementById('bottom-bar-net');
       if (bNet) {
         bNet.innerText = formatCurrency(curCalc.netMonth);
-        bNet.className = curCalc.netMonth >= 0 ? "text-sm font-black text-emerald-400 leading-tight" : "text-sm font-black text-rose-400 leading-tight";
+        bNet.className = (curCalc.netMonth >= 0 || appState.isPrivacyMode) ? "text-sm font-black text-emerald-400 leading-tight" : "text-sm font-black text-rose-400 leading-tight";
       }
       const bCum = document.getElementById('bottom-bar-cumul');
       if (bCum) bCum.innerText = formatCurrency(curCalc.cumulativeSavings);
@@ -1077,7 +1129,7 @@
                      placeholder="0" 
                      onkeypress="if(!/[0-9]/.test(event.key)) event.preventDefault();"
                      oninput="updateRowAmount('${category}', ${idx}, this)" 
-                     class="row-input w-full text-right font-black ${
+                     class="row-input privacy-mask-input w-full text-right font-black ${
                        category === 'incomes' ? 'text-emerald-400' : category === 'expenses' ? 'text-rose-400' : 'text-amber-300'
                      }">
               <span class="text-[9.5px] text-slate-400 font-semibold shrink-0">TL</span>
@@ -1118,7 +1170,7 @@
           <td class="py-2 px-2.5 text-emerald-400 font-medium whitespace-nowrap">${formatCurrency(c.totalInc)}</td>
           <td class="py-2 px-2.5 text-rose-400 font-medium whitespace-nowrap">${formatCurrency(c.totalExp)}</td>
           <td class="py-2 px-2.5 text-amber-300 font-medium whitespace-nowrap">${formatCurrency(c.totalDebts)}</td>
-          <td class="py-2 px-2.5 ${c.netMonth >= 0 ? 'text-emerald-300 font-bold' : 'text-rose-400 font-bold'} whitespace-nowrap">${formatCurrency(c.netMonth)}</td>
+          <td class="py-2 px-2.5 ${(c.netMonth >= 0 || appState.isPrivacyMode) ? 'text-emerald-300 font-bold' : 'text-rose-400 font-bold'} whitespace-nowrap">${formatCurrency(c.netMonth)}</td>
           <td class="py-2 px-2.5 text-teal-300 font-extrabold whitespace-nowrap">${formatCurrency(c.cumulativeSavings)}</td>
         `;
         tbody.appendChild(tr);
@@ -1294,8 +1346,8 @@
             if (parsed.users) {
               appState = parsed;
             } else {
-              // Legacy single user conversion
               appState = {
+                isPrivacyMode: false,
                 activeUserId: 'imported-user-1',
                 users: [{
                   id: 'imported-user-1',
@@ -1309,6 +1361,7 @@
               };
             }
             saveAppState();
+            updatePrivacyUI();
             updateHeaderProfile();
             render();
             alert("Tüm bütçe ve profil verileriniz başarıyla yüklendi!");
