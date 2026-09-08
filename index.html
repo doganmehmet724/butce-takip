@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Kişisel Bütçe & Borç Defteri</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #1e293b;
+      --border: #334155;
+    }
+    body {
+      background-color: #0b1120;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    /* 15-16px font size on mobile prevents unwanted Safari/Chrome viewport zoom on focus */
+    .row-input {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 15px;
+      transition: all 0.2s;
+    }
+    @media (min-width: 768px) {
+      .row-input {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
+    }
+    .row-input:focus {
+      outline: none;
+      border-color: #10b981;
+      background: #1e293b;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-28 md:pb-16 selection:bg-emerald-500 selection:text-white">
+
+  <!-- ================= TOP MOBILE APP BAR ================= -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3.5 py-2.5 shadow-xl">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+          <svg class="w-5 h-5 text-slate-950 font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-1.5 leading-tight">
+            Kişisel Bütçe Defteri
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">CANLI</span>
+          </h1>
+          <p class="text-[10px] text-slate-400">Tüm kalemleri dilediğiniz gibi yazın ve takip edin</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-1.5">
+        <button onclick="copyPrevMonth()" title="Önceki Aydan Kalemleri Kopyala" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
+          <span>📋</span>
+          <span class="hidden sm:inline">Önceki Aydan Kopyala</span>
+        </button>
+        <button onclick="toggleMenuModal()" title="Menü ve Araçlar" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold active:scale-95 transition flex items-center justify-center">
+          ⚙️
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 pt-3 space-y-3.5">
+
+    <!-- ================= MONTH-END RESULT DASHBOARD (KPI CARDS) ================= -->
+    <section class="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
+      
+      <!-- 1. Toplam Gelir -->
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-emerald-500 shadow-sm">
+        <div class="flex justify-between items-center text-slate-400">
+          <span class="text-[9.5px] font-bold uppercase tracking-wider">Toplam Gelir</span>
+          <span class="text-xs">💵</span>
+        </div>
+        <div id="kpi-total-income" class="text-base sm:text-lg md:text-xl font-black text-emerald-400 mt-0.5">0 TL</div>
+        <div id="kpi-income-count" class="text-[9.5px] text-slate-400">0 kalem</div>
+      </div>
+
+      <!-- 2. Yaşam Giderleri -->
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-rose-500 shadow-sm">
+        <div class="flex justify-between items-center text-slate-400">
+          <span class="text-[9.5px] font-bold uppercase tracking-wider">Yaşam Gideri</span>
+          <span class="text-xs">🛒</span>
+        </div>
+        <div id="kpi-total-expenses" class="text-base sm:text-lg md:text-xl font-black text-rose-400 mt-0.5">0 TL</div>
+        <div id="kpi-expense-count" class="text-[9.5px] text-slate-400">0 kalem</div>
+      </div>
+
+      <!-- 3. Kredi & Borç Ödemeleri -->
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-amber-500 shadow-sm">
+        <div class="flex justify-between items-center text-slate-400">
+          <span class="text-[9.5px] font-bold uppercase tracking-wider">Borç / Kredi</span>
+          <span class="text-xs">🏦</span>
+        </div>
+        <div id="kpi-total-debts" class="text-base sm:text-lg md:text-xl font-black text-amber-400 mt-0.5">0 TL</div>
+        <div id="kpi-debt-count" class="text-[9.5px] text-slate-400">0 kalem</div>
+      </div>
+
+      <!-- 4. AY SONU NET KALAN / BİRİKİM -->
+      <div class="glass-card p-3 rounded-xl border-2 border-emerald-500 bg-emerald-950/20 shadow-md">
+        <div class="flex justify-between items-center text-emerald-300">
+          <span class="text-[9.5px] font-extrabold uppercase tracking-wider">NET KALAN</span>
+          <span class="text-xs">🎯</span>
+        </div>
+        <div id="kpi-month-net" class="text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5">0 TL</div>
+        <div class="text-[9.5px] text-emerald-400/80">Ay sonu net nakit</div>
+      </div>
+
+      <!-- 5. KÜMÜLATİF TOPLAM KASA / BİRİKİM -->
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-teal-400 shadow-sm col-span-2 lg:col-span-1">
+        <div class="flex justify-between items-center text-slate-400">
+          <span class="text-[9.5px] font-bold uppercase tracking-wider">Kümülatif Toplam Kasa</span>
+          <span class="text-xs">💰</span>
+        </div>
+        <div id="kpi-cumulative-total" class="text-base sm:text-lg md:text-xl font-black text-teal-300 mt-0.5">0 TL</div>
+        <div class="text-[9.5px] text-slate-400">Önceki aylar dahil birikim</div>
+      </div>
+
+    </section>
+
+    <!-- ================= 12 MONTH TABS (FIXED 12 MONTHS) ================= -->
+    <section class="glass-card p-2 rounded-2xl shadow-sm">
+      <div class="flex items-center justify-between mb-1.5 px-1.5 pt-0.5">
+        <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+          <span>📅</span> 12 Aylık Takvim:
+        </span>
+      </div>
+
+      <div id="month-tabs" class="flex gap-1.5 overflow-x-auto pb-1 custom-scroll px-0.5">
+        <!-- 12 Month buttons injected by JS -->
+      </div>
+    </section>
+
+    <!-- ================= MOBILE SECTION SEGMENTED CONTROL ================= -->
+    <div class="flex md:hidden bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
+      <button onclick="switchMobileSection('all')" id="btn-sec-all" class="flex-1 py-1.5 rounded-lg text-center bg-emerald-600 text-white shadow transition">
+        Tümü
+      </button>
+      <button onclick="switchMobileSection('incomes')" id="btn-sec-incomes" class="flex-1 py-1.5 rounded-lg text-center text-slate-400 hover:text-white transition">
+        💵 Gelir
+      </button>
+      <button onclick="switchMobileSection('expenses')" id="btn-sec-expenses" class="flex-1 py-1.5 rounded-lg text-center text-slate-400 hover:text-white transition">
+        🛒 Gider
+      </button>
+      <button onclick="switchMobileSection('debts')" id="btn-sec-debts" class="flex-1 py-1.5 rounded-lg text-center text-slate-400 hover:text-white transition">
+        🏦 Borç
+      </button>
+      <button onclick="switchMobileSection('summary')" id="btn-sec-summary" class="flex-1 py-1.5 rounded-lg text-center text-slate-400 hover:text-white transition">
+        📊 Karne
+      </button>
+    </div>
+
+    <!-- ================= 3 FREELY EDITABLE TABLES ================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+
+      <!-- ================= 1. GELİRLER TABLOSU ================= -->
+      <div id="section-incomes-card" class="glass-card rounded-2xl p-3.5 shadow-md border-t-4 border-t-emerald-500 flex flex-col justify-between">
+        <div>
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b border-slate-700/80 pb-2 mb-2.5">
+            <div>
+              <h2 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+                <span class="text-emerald-400">💵</span> GELİRLER
+              </h2>
+              <p class="text-[10px] text-slate-400">Maaş, prim, ek gelir vb. (Sadece harf)</p>
+            </div>
+            <button onclick="addRow('incomes')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm flex items-center gap-1 active:scale-95">
+              + Satır Ekle
+            </button>
+          </div>
+
+          <!-- Rows Container -->
+          <div id="incomes-container" class="space-y-2">
+            <!-- Dynamic rows -->
+          </div>
+        </div>
+
+        <!-- Footer Total -->
+        <div class="pt-2.5 mt-2.5 border-t border-slate-700/80 flex justify-between items-center bg-slate-900/60 p-2 rounded-xl">
+          <span class="text-xs font-bold text-slate-300">Toplam Gelir:</span>
+          <span id="subtotal-incomes" class="text-sm font-black text-emerald-400">0 TL</span>
+        </div>
+      </div>
+
+      <!-- ================= 2. YAŞAM & HARCAMA GİDERLERİ TABLOSU ================= -->
+      <div id="section-expenses-card" class="glass-card rounded-2xl p-3.5 shadow-md border-t-4 border-t-rose-500 flex flex-col justify-between">
+        <div>
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b border-slate-700/80 pb-2 mb-2.5">
+            <div>
+              <h2 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+                <span class="text-rose-400">🛒</span> YAŞAM GİDERLERİ
+              </h2>
+              <p class="text-[10px] text-slate-400">Kira, mutfak, faturalar vb. (Sadece harf)</p>
+            </div>
+            <button onclick="addRow('expenses')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition shadow-sm flex items-center gap-1 active:scale-95">
+              + Satır Ekle
+            </button>
+          </div>
+
+          <!-- Rows Container -->
+          <div id="expenses-container" class="space-y-2">
+            <!-- Dynamic rows -->
+          </div>
+        </div>
+
+        <!-- Footer Total -->
+        <div class="pt-2.5 mt-2.5 border-t border-slate-700/80 flex justify-between items-center bg-slate-900/60 p-2 rounded-xl">
+          <span class="text-xs font-bold text-slate-300">Toplam Gider:</span>
+          <span id="subtotal-expenses" class="text-sm font-black text-rose-400">0 TL</span>
+        </div>
+      </div>
+
+      <!-- ================= 3. BORÇ / KREDİ / TAKSİT ÖDEMELERİ TABLOSU ================= -->
+      <div id="section-debts-card" class="glass-card rounded-2xl p-3.5 shadow-md border-t-4 border-t-amber-500 flex flex-col justify-between">
+        <div>
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b border-slate-700/80 pb-2 mb-2.5">
+            <div>
+              <h2 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+                <span class="text-amber-400">🏦</span> BORÇ & KREDİLER
+              </h2>
+              <p class="text-[10px] text-slate-400">Kredi, kart ödemesi vb. (Sadece harf)</p>
+            </div>
+            <button onclick="addRow('debts')" class="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow-sm flex items-center gap-1 active:scale-95">
+              + Satır Ekle
+            </button>
+          </div>
+
+          <!-- Rows Container -->
+          <div id="debts-container" class="space-y-2">
+            <!-- Dynamic rows -->
+          </div>
+        </div>
+
+        <!-- Footer Total -->
+        <div class="pt-2.5 mt-2.5 border-t border-slate-700/80 flex justify-between items-center bg-slate-900/60 p-2 rounded-xl">
+          <span class="text-xs font-bold text-slate-300">Toplam Borç Ödemesi:</span>
+          <span id="subtotal-debts" class="text-sm font-black text-amber-400">0 TL</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= 12 AYLIK GENEL KARŞILAŞTIRMA VE ÖZET TABLOSU ================= -->
+    <section id="section-summary-card" class="glass-card rounded-2xl p-3.5 shadow-md space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-700/80 pb-2">
+        <div>
+          <h2 class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+            <span>📊</span> Tüm Ayların Genel Finansal Karnesi
+          </h2>
+          <p class="text-[10px] text-slate-400">1-12. Ay genel durum tablosu</p>
+        </div>
+        <button onclick="resetAllMonths()" class="text-[10px] sm:text-xs font-semibold px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 active:scale-95 transition">
+          🧹 Tüm Ayları Sıfırla
+        </button>
+      </div>
+
+      <div class="overflow-x-auto custom-scroll -mx-1 px-1">
+        <table class="w-full text-left text-xs border-collapse min-w-[580px]">
+          <thead>
+            <tr class="border-b border-slate-700 text-slate-400 bg-slate-900/80 text-[11px]">
+              <th class="py-2 px-2.5 font-semibold">Ay</th>
+              <th class="py-2 px-2.5 font-semibold">Toplam Gelir</th>
+              <th class="py-2 px-2.5 font-semibold">Yaşam Gider</th>
+              <th class="py-2 px-2.5 font-semibold">Borç Ödemesi</th>
+              <th class="py-2 px-2.5 font-semibold text-emerald-400">Net Kalan</th>
+              <th class="py-2 px-2.5 font-semibold text-teal-300">Toplam Kasa</th>
+            </tr>
+          </thead>
+          <tbody id="master-summary-tbody" class="divide-y divide-slate-800/80 text-[11px]">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MOBILE STICKY BOTTOM QUICK BAR ================= -->
+  <aside class="fixed md:hidden bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-4 py-2.5 shadow-2xl">
+    <div class="flex items-center justify-between">
+      <div>
+        <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Ay Sonu Net Kalan</span>
+        <p id="bottom-bar-net" class="text-sm font-black text-emerald-400 leading-tight">0 TL</p>
+      </div>
+      <div class="h-6 w-[1px] bg-slate-800"></div>
+      <div class="text-right">
+        <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Kümülatif Toplam Kasa</span>
+        <p id="bottom-bar-cumul" class="text-sm font-black text-teal-300 leading-tight">0 TL</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MENU / TOOLS MODAL ================= -->
+  <div id="modal-menu" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-t-3xl sm:rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+          <span>⚙️</span> İşlem ve Veri Menüsü
+        </h3>
+        <button onclick="toggleMenuModal()" class="text-slate-400 hover:text-white p-1 text-lg">✕</button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <button onclick="copyPrevMonth(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
+          <span>📋</span> Önceki Aydan Kalemleri Kopyala
+        </button>
+        <button onclick="clearCurrentMonth(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
+          <span>🧹</span> Bu Ayın Kalemlerini Temizle
+        </button>
+        <button onclick="resetAllMonths(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 font-semibold text-left flex items-center gap-2 transition">
+          <span>🗑️</span> Tüm Ayları Sıfırla (Temiz Sayfa)
+        </button>
+        <button onclick="exportJSON(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
+          <span>💾</span> Verileri Yedekle (JSON İndir)
+        </button>
+        <label class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 cursor-pointer transition block">
+          <span>📂</span> Yedekten Geri Yükle (JSON)
+          <input type="file" accept=".json" class="hidden" onchange="importJSON(event); toggleMenuModal();">
+        </label>
+        <button onclick="window.print(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 text-white font-bold text-center transition shadow-md">
+          🖨️ Sayfayı Yazdır / PDF Al
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // Fixed 12-Month Clean Dataset (No addition/removal of months)
+    function createCleanDataset() {
+      return {
+        activeMonthId: 1,
+        months: Array.from({ length: 12 }, (_, i) => ({
+          id: i + 1,
+          name: `${i + 1}. Ay`,
+          incomes: [],
+          expenses: [],
+          debts: []
+        }))
+      };
+    }
+
+    // State
+    let data = null;
+
+    function init() {
+      // Clear legacy storage keys
+      localStorage.removeItem('custom_finance_budget_data_v2');
+      localStorage.removeItem('personal_finance_tracker_data_v1');
+      localStorage.removeItem('personal_clean_budget_data_v3');
+      localStorage.removeItem('personal_clean_budget_data_v4');
+
+      const saved = localStorage.getItem('personal_clean_budget_data_v5');
+      if (saved) {
+        try {
+          data = JSON.parse(saved);
+        } catch(e) {
+          data = createCleanDataset();
+        }
+      } else {
+        data = createCleanDataset();
+      }
+
+      // Ensure exactly 12 months with standard names
+      if (!data || !data.months || data.months.length !== 12) {
+        data = createCleanDataset();
+      } else {
+        data.months.forEach((m, idx) => {
+          m.id = idx + 1;
+          m.name = `${idx + 1}. Ay`;
+        });
+      }
+
+      render();
+    }
+
+    function save() {
+      localStorage.setItem('personal_clean_budget_data_v5', JSON.stringify(data));
+    }
+
+    function formatCurrency(val) {
+      if (isNaN(val)) val = 0;
+      return new Intl.NumberFormat('tr-TR').format(Math.round(val)) + ' TL';
+    }
+
+    function getActiveMonth() {
+      let m = data.months.find(x => x.id === data.activeMonthId);
+      if (!m) {
+        m = data.months[0];
+        data.activeMonthId = m.id;
+      }
+      return m;
+    }
+
+    // Calculations
+    function computeAll() {
+      let runningSavings = 0;
+      let monthCalculations = {};
+
+      data.months.forEach(m => {
+        const totalInc = (m.incomes || []).reduce((acc, i) => acc + (Number(i.amount) || 0), 0);
+        const totalExp = (m.expenses || []).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+        const totalDebts = (m.debts || []).reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
+        
+        const netMonth = totalInc - totalExp - totalDebts;
+        runningSavings += netMonth;
+
+        monthCalculations[m.id] = {
+          totalInc,
+          totalExp,
+          totalDebts,
+          netMonth,
+          cumulativeSavings: runningSavings
+        };
+      });
+
+      return monthCalculations;
+    }
+
+    // Fast calculation updater (Does NOT touch or rebuild any input elements!)
+    function updateCalculationsOnly() {
+      const curMonth = getActiveMonth();
+      const calcMap = computeAll();
+      const curCalc = calcMap[curMonth.id] || { totalInc: 0, totalExp: 0, totalDebts: 0, netMonth: 0, cumulativeSavings: 0 };
+
+      // 1. Update Top KPIs
+      document.getElementById('kpi-total-income').innerText = formatCurrency(curCalc.totalInc);
+      document.getElementById('kpi-income-count').innerText = `${(curMonth.incomes || []).length} kalem`;
+
+      document.getElementById('kpi-total-expenses').innerText = formatCurrency(curCalc.totalExp);
+      document.getElementById('kpi-expense-count').innerText = `${(curMonth.expenses || []).length} kalem`;
+
+      document.getElementById('kpi-total-debts').innerText = formatCurrency(curCalc.totalDebts);
+      document.getElementById('kpi-debt-count').innerText = `${(curMonth.debts || []).length} kalem`;
+
+      const netEl = document.getElementById('kpi-month-net');
+      netEl.innerText = formatCurrency(curCalc.netMonth);
+      if (curCalc.netMonth < 0) {
+        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-rose-400 mt-0.5";
+      } else {
+        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5";
+      }
+
+      document.getElementById('kpi-cumulative-total').innerText = formatCurrency(curCalc.cumulativeSavings);
+
+      // 2. Update Column Subtotals
+      document.getElementById('subtotal-incomes').innerText = formatCurrency(curCalc.totalInc);
+      document.getElementById('subtotal-expenses').innerText = formatCurrency(curCalc.totalExp);
+      document.getElementById('subtotal-debts').innerText = formatCurrency(curCalc.totalDebts);
+
+      // 3. Update Sticky Bottom Bar (Mobile)
+      const bNet = document.getElementById('bottom-bar-net');
+      if (bNet) {
+        bNet.innerText = formatCurrency(curCalc.netMonth);
+        bNet.className = curCalc.netMonth >= 0 ? "text-sm font-black text-emerald-400 leading-tight" : "text-sm font-black text-rose-400 leading-tight";
+      }
+      const bCum = document.getElementById('bottom-bar-cumul');
+      if (bCum) bCum.innerText = formatCurrency(curCalc.cumulativeSavings);
+
+      // 4. Update Master Comparison Table
+      renderMasterSummary(calcMap);
+    }
+
+    // Full Structure Render Function
+    function render() {
+      const curMonth = getActiveMonth();
+      const calcMap = computeAll();
+      const curCalc = calcMap[curMonth.id] || { totalInc: 0, totalExp: 0, totalDebts: 0, netMonth: 0, cumulativeSavings: 0 };
+
+      // 1. Render Top KPI Dashboard
+      document.getElementById('kpi-total-income').innerText = formatCurrency(curCalc.totalInc);
+      document.getElementById('kpi-income-count').innerText = `${(curMonth.incomes || []).length} kalem`;
+
+      document.getElementById('kpi-total-expenses').innerText = formatCurrency(curCalc.totalExp);
+      document.getElementById('kpi-expense-count').innerText = `${(curMonth.expenses || []).length} kalem`;
+
+      document.getElementById('kpi-total-debts').innerText = formatCurrency(curCalc.totalDebts);
+      document.getElementById('kpi-debt-count').innerText = `${(curMonth.debts || []).length} kalem`;
+
+      const netEl = document.getElementById('kpi-month-net');
+      netEl.innerText = formatCurrency(curCalc.netMonth);
+      if (curCalc.netMonth < 0) {
+        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-rose-400 mt-0.5";
+      } else {
+        netEl.className = "text-base sm:text-xl md:text-2xl font-black text-emerald-300 mt-0.5";
+      }
+
+      document.getElementById('kpi-cumulative-total').innerText = formatCurrency(curCalc.cumulativeSavings);
+
+      // Sticky Bottom Bar
+      const bNet = document.getElementById('bottom-bar-net');
+      if (bNet) {
+        bNet.innerText = formatCurrency(curCalc.netMonth);
+        bNet.className = curCalc.netMonth >= 0 ? "text-sm font-black text-emerald-400 leading-tight" : "text-sm font-black text-rose-400 leading-tight";
+      }
+      const bCum = document.getElementById('bottom-bar-cumul');
+      if (bCum) bCum.innerText = formatCurrency(curCalc.cumulativeSavings);
+
+      // 2. Render Month Navigation Tabs (Fixed 12 Months)
+      renderMonthTabs();
+
+      // 3. Render Incomes Table
+      renderSectionRows('incomes', curMonth.incomes || [], 'incomes-container', 'subtotal-incomes', curCalc.totalInc, 'Maaş, prim, ek gelir');
+
+      // 4. Render Expenses Table
+      renderSectionRows('expenses', curMonth.expenses || [], 'expenses-container', 'subtotal-expenses', curCalc.totalExp, 'Kira, mutfak, fatura');
+
+      // 5. Render Debts Table
+      renderSectionRows('debts', curMonth.debts || [], 'debts-container', 'subtotal-debts', curCalc.totalDebts, 'Kredi, kart ödemesi');
+
+      // 6. Render Master Comparison Table
+      renderMasterSummary(calcMap);
+    }
+
+    function renderMonthTabs() {
+      const container = document.getElementById('month-tabs');
+      container.innerHTML = '';
+
+      data.months.forEach(m => {
+        const isActive = m.id === data.activeMonthId;
+        const btn = document.createElement('button');
+        btn.onclick = () => {
+          data.activeMonthId = m.id;
+          save();
+          render();
+        };
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1 shrink-0 ${
+          isActive 
+            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-400/50 scale-102' 
+            : 'bg-slate-800/80 text-slate-400 hover:text-white border border-slate-700/60'
+        }`;
+        btn.innerText = m.name;
+        container.appendChild(btn);
+      });
+    }
+
+    function renderSectionRows(category, items, containerId, subtotalId, totalVal, placeholderText) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 border-2 border-dashed border-slate-800 rounded-xl text-xs text-slate-500">
+            Henüz kalem eklenmedi.<br>Yukarıdaki <strong>"+ Satır Ekle"</strong> butonuna tıklayın.
+          </div>
+        `;
+      } else {
+        items.forEach((item, idx) => {
+          const row = document.createElement('div');
+          row.className = "flex items-center gap-1.5 bg-slate-900/70 p-1.5 sm:p-2 rounded-xl border border-slate-800/80 hover:border-slate-700 transition";
+          row.innerHTML = `
+            <div class="flex-1 min-w-0">
+              <input type="text" 
+                     value="${item.name || ''}" 
+                     placeholder="${placeholderText}" 
+                     onkeypress="if(event.key >= '0' && event.key <= '9') event.preventDefault();"
+                     oninput="updateRowName('${category}', ${idx}, this)" 
+                     class="row-input w-full font-medium text-slate-200 truncate">
+            </div>
+            <div class="w-28 sm:w-32 flex items-center gap-1 shrink-0">
+              <input type="text" 
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     value="${item.amount !== undefined && item.amount !== '' ? item.amount : ''}" 
+                     placeholder="0" 
+                     onkeypress="if(!/[0-9]/.test(event.key)) event.preventDefault();"
+                     oninput="updateRowAmount('${category}', ${idx}, this)" 
+                     class="row-input w-full text-right font-black ${
+                       category === 'incomes' ? 'text-emerald-400' : category === 'expenses' ? 'text-rose-400' : 'text-amber-300'
+                     }">
+              <span class="text-[9.5px] text-slate-400 font-semibold shrink-0">TL</span>
+            </div>
+            <button onclick="removeRow('${category}', ${idx})" title="Satırı Sil" class="w-8 h-8 sm:w-7 sm:h-7 rounded-lg bg-slate-800/90 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center transition shrink-0 active:scale-90">
+              ✕
+            </button>
+          `;
+          container.appendChild(row);
+        });
+      }
+
+      document.getElementById(subtotalId).innerText = formatCurrency(totalVal);
+    }
+
+    function renderMasterSummary(calcMap) {
+      const tbody = document.getElementById('master-summary-tbody');
+      tbody.innerHTML = '';
+
+      data.months.forEach(m => {
+        const c = calcMap[m.id] || { totalInc: 0, totalExp: 0, totalDebts: 0, netMonth: 0, cumulativeSavings: 0 };
+        const isCurrent = m.id === data.activeMonthId;
+
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-slate-800/50 transition cursor-pointer ${isCurrent ? 'bg-emerald-950/25 font-bold border-l-4 border-l-emerald-500' : ''}`;
+        tr.onclick = () => {
+          data.activeMonthId = m.id;
+          save();
+          render();
+        };
+
+        tr.innerHTML = `
+          <td class="py-2 px-2.5 flex items-center gap-1">
+            <span class="text-white whitespace-nowrap">${m.name}</span>
+            ${isCurrent ? '<span class="text-[8.5px] bg-emerald-500/20 text-emerald-300 px-1 py-0.2 rounded">Seçili</span>' : ''}
+          </td>
+          <td class="py-2 px-2.5 text-emerald-400 font-medium whitespace-nowrap">${formatCurrency(c.totalInc)}</td>
+          <td class="py-2 px-2.5 text-rose-400 font-medium whitespace-nowrap">${formatCurrency(c.totalExp)}</td>
+          <td class="py-2 px-2.5 text-amber-300 font-medium whitespace-nowrap">${formatCurrency(c.totalDebts)}</td>
+          <td class="py-2 px-2.5 ${c.netMonth >= 0 ? 'text-emerald-300 font-bold' : 'text-rose-400 font-bold'} whitespace-nowrap">${formatCurrency(c.netMonth)}</td>
+          <td class="py-2 px-2.5 text-teal-300 font-extrabold whitespace-nowrap">${formatCurrency(c.cumulativeSavings)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Row Operations
+    function addRow(category) {
+      const curMonth = getActiveMonth();
+      if (!curMonth[category]) curMonth[category] = [];
+
+      curMonth[category].push({
+        id: 'item-' + Date.now() + Math.random(),
+        name: '',
+        amount: ''
+      });
+
+      save();
+      render();
+
+      // Automatically focus on the newly added row input so you can type immediately
+      setTimeout(() => {
+        const container = document.getElementById(`${category}-container`);
+        if (container) {
+          const inputs = container.querySelectorAll('input[type="text"]');
+          if (inputs.length > 0) {
+            const lastInput = inputs[inputs.length - 2] || inputs[0]; // first input of the row is the name field
+            lastInput.focus();
+          }
+        }
+      }, 50);
+    }
+
+    function removeRow(category, idx) {
+      const curMonth = getActiveMonth();
+      if (curMonth[category]) {
+        curMonth[category].splice(idx, 1);
+        save();
+        render();
+      }
+    }
+
+    // Kalem Adı Girişi: Sadece harf ve metin kabul edilir, rakamlar (0-9) filtrelenir/engellenir
+    function updateRowName(category, idx, inputEl) {
+      const cleanVal = inputEl.value.replace(/[0-9]/g, '');
+      if (inputEl.value !== cleanVal) {
+        inputEl.value = cleanVal;
+      }
+      const curMonth = getActiveMonth();
+      if (curMonth[category] && curMonth[category][idx]) {
+        curMonth[category][idx].name = cleanVal;
+        save();
+      }
+    }
+
+    // Tutar Girişi: Sadece rakamlar (0-9) kabul edilir, harfler ve geçersiz karakterler engellenir
+    function updateRowAmount(category, idx, inputEl) {
+      const cleanVal = inputEl.value.replace(/[^0-9]/g, '');
+      if (inputEl.value !== cleanVal) {
+        inputEl.value = cleanVal;
+      }
+      const curMonth = getActiveMonth();
+      if (curMonth[category] && curMonth[category][idx]) {
+        curMonth[category][idx].amount = cleanVal === '' ? '' : Number(cleanVal);
+        save();
+        updateCalculationsOnly();
+      }
+    }
+
+    // Mobile Section Switcher
+    function switchMobileSection(section) {
+      const secIncomes = document.getElementById('section-incomes-card');
+      const secExpenses = document.getElementById('section-expenses-card');
+      const secDebts = document.getElementById('section-debts-card');
+      const secSummary = document.getElementById('section-summary-card');
+
+      const btns = ['btn-sec-all', 'btn-sec-incomes', 'btn-sec-expenses', 'btn-sec-debts', 'btn-sec-summary'];
+      btns.forEach(b => {
+        const el = document.getElementById(b);
+        if (el) el.className = "flex-1 py-1.5 rounded-lg text-center text-slate-400 hover:text-white transition";
+      });
+
+      const activeBtn = document.getElementById(`btn-sec-${section}`);
+      if (activeBtn) activeBtn.className = "flex-1 py-1.5 rounded-lg text-center bg-emerald-600 text-white shadow transition";
+
+      if (section === 'all') {
+        secIncomes.classList.remove('hidden');
+        secExpenses.classList.remove('hidden');
+        secDebts.classList.remove('hidden');
+        secSummary.classList.remove('hidden');
+      } else if (section === 'incomes') {
+        secIncomes.classList.remove('hidden');
+        secExpenses.classList.add('hidden');
+        secDebts.classList.add('hidden');
+        secSummary.classList.add('hidden');
+      } else if (section === 'expenses') {
+        secIncomes.classList.add('hidden');
+        secExpenses.classList.remove('hidden');
+        secDebts.classList.add('hidden');
+        secSummary.classList.add('hidden');
+      } else if (section === 'debts') {
+        secIncomes.classList.add('hidden');
+        secExpenses.classList.add('hidden');
+        secDebts.classList.remove('hidden');
+        secSummary.classList.add('hidden');
+      } else if (section === 'summary') {
+        secIncomes.classList.add('hidden');
+        secExpenses.classList.add('hidden');
+        secDebts.classList.add('hidden');
+        secSummary.classList.remove('hidden');
+      }
+    }
+
+    // Month Operations
+    function copyPrevMonth() {
+      const curIdx = data.months.findIndex(m => m.id === data.activeMonthId);
+      if (curIdx <= 0) {
+        alert("İlk aydasınız, kopyalanacak önceki bir ay yok.");
+        return;
+      }
+
+      const prevMonth = data.months[curIdx - 1];
+      const curMonth = data.months[curIdx];
+
+      if (confirm(`'${prevMonth.name}' içerisindeki tüm gelir, gider ve borç kalemleri '${curMonth.name}' içine kopyalansın mı?`)) {
+        curMonth.incomes = JSON.parse(JSON.stringify(prevMonth.incomes || []));
+        curMonth.expenses = JSON.parse(JSON.stringify(prevMonth.expenses || []));
+        curMonth.debts = JSON.parse(JSON.stringify(prevMonth.debts || []));
+        save();
+        render();
+      }
+    }
+
+    function clearCurrentMonth() {
+      const curMonth = getActiveMonth();
+      if (confirm(`'${curMonth.name}' içerisindeki tüm kalemleri silmek istediğinizden emin misiniz?`)) {
+        curMonth.incomes = [];
+        curMonth.expenses = [];
+        curMonth.debts = [];
+        save();
+        render();
+      }
+    }
+
+    function resetAllMonths() {
+      if (confirm("Tüm 12 ayın verilerini tamamen silip sıfırdan boş bir tablo oluşturmak istiyor musunuz?")) {
+        data = createCleanDataset();
+        save();
+        render();
+      }
+    }
+
+    function toggleMenuModal() {
+      const modal = document.getElementById('modal-menu');
+      modal.classList.toggle('hidden');
+    }
+
+    // Export & Import
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", `butce_defteri_yedek_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && parsed.months) {
+            data = parsed;
+            save();
+            render();
+            alert("Yedek dosyanız başarıyla yüklendi!");
+          } else {
+            alert("Hatalı dosya formatı!");
+          }
+        } catch(err) {
+          alert("Dosya okunamadı: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
