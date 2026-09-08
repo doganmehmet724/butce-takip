@@ -68,31 +68,50 @@
 </head>
 <body class="min-h-screen pb-28 md:pb-16 selection:bg-emerald-500 selection:text-white">
 
+  <!-- ================= SAVE TOAST NOTIFICATION ================= -->
+  <div id="save-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold transition-all duration-300 opacity-0 pointer-events-none -translate-y-4">
+    <span class="text-sm">💾</span>
+    <span id="save-toast-msg">Değişiklikler başarıyla kaydedildi!</span>
+  </div>
+
   <!-- ================= TOP MOBILE APP BAR ================= -->
   <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3.5 py-2.5 shadow-xl">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
       
-      <!-- Brand & Title -->
-      <div class="flex items-center space-x-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
-          <svg class="w-5 h-5 text-slate-950 font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div>
-          <h1 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-1.5 leading-tight">
-            Kişisel Bütçe Defteri
-            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">CANLI</span>
-          </h1>
-          <p class="text-[10px] text-slate-400">Tüm kalemleri dilediğiniz gibi yazın ve takip edin</p>
+      <!-- Brand & User Profile -->
+      <div class="flex items-center space-x-2.5 min-w-0">
+        <!-- Profile Avatar Button -->
+        <button onclick="openUserNameModal()" title="Kullanıcı Adını Değiştir" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0 text-slate-950 font-black text-xs active:scale-95 transition">
+          <span id="user-avatar-initial">K</span>
+        </button>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h1 id="header-app-title" onclick="openUserNameModal()" class="text-sm sm:text-base font-extrabold text-white truncate cursor-pointer hover:text-emerald-400 transition leading-tight">
+              Bütçe Defteri
+            </h1>
+            <span id="save-status-badge" class="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+              🟢 Kaydedildi
+            </span>
+          </div>
+          <p class="text-[10px] text-slate-400 truncate flex items-center gap-1">
+            <span>👤</span>
+            <span id="header-user-name" onclick="openUserNameModal()" class="cursor-pointer hover:underline text-slate-300 font-bold truncate">Kullanıcı</span>
+            <span class="text-slate-600">•</span>
+            <span id="header-last-saved-time" class="text-slate-400">Kayıt: --:--</span>
+          </p>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1.5 shrink-0">
+        <!-- Prominent Save Button -->
+        <button onclick="manualSave()" title="Kaydet (Ctrl + S)" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md flex items-center gap-1.5 active:scale-95 transition">
+          <span>💾</span>
+          <span>Kaydet</span>
+        </button>
         <button onclick="copyPrevMonth()" title="Önceki Aydan Kalemleri Kopyala" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
           <span>📋</span>
-          <span class="hidden sm:inline">Önceki Aydan Kopyala</span>
+          <span class="hidden md:inline">Önceki Aydan Kopyala</span>
         </button>
         <button onclick="toggleMenuModal()" title="Menü ve Araçlar" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold active:scale-95 transition flex items-center justify-center">
           ⚙️
@@ -325,13 +344,41 @@
         <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Ay Sonu Net Kalan</span>
         <p id="bottom-bar-net" class="text-sm font-black text-emerald-400 leading-tight">0 TL</p>
       </div>
-      <div class="h-6 w-[1px] bg-slate-800"></div>
+      <div class="flex items-center gap-2">
+        <button onclick="manualSave()" class="px-3 py-1 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 active:scale-95 shadow">
+          <span>💾</span> Kaydet
+        </button>
+      </div>
       <div class="text-right">
         <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Kümülatif Toplam Kasa</span>
         <p id="bottom-bar-cumul" class="text-sm font-black text-teal-300 leading-tight">0 TL</p>
       </div>
     </div>
   </aside>
+
+  <!-- ================= USER NAME MODAL ================= -->
+  <div id="modal-username" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
+        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+          <span>👤</span> Kullanıcı Adını Düzenle
+        </h3>
+        <button onclick="closeUserNameModal()" class="text-slate-400 hover:text-white p-1 text-base">✕</button>
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 font-semibold mb-1">Adınız / Profil Başlığı:</label>
+        <input type="text" id="input-username" placeholder="Örn: Mehmet Doğan, Ev Bütçem" class="row-input w-full font-bold text-white">
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button onclick="closeUserNameModal()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
+          İptal
+        </button>
+        <button onclick="saveUserName()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-md">
+          Kaydet
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= MENU / TOOLS MODAL ================= -->
   <div id="modal-menu" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -344,6 +391,12 @@
       </div>
 
       <div class="space-y-2 text-xs">
+        <button onclick="openUserNameModal(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
+          <span>👤</span> Kullanıcı Adını Değiştir
+        </button>
+        <button onclick="manualSave(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 font-bold text-left flex items-center gap-2 transition">
+          <span>💾</span> Değişiklikleri Şimdi Kaydet
+        </button>
         <button onclick="copyPrevMonth(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
           <span>📋</span> Önceki Aydan Kalemleri Kopyala
         </button>
@@ -354,7 +407,7 @@
           <span>🗑️</span> Tüm Ayları Sıfırla (Temiz Sayfa)
         </button>
         <button onclick="exportJSON(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
-          <span>💾</span> Verileri Yedekle (JSON İndir)
+          <span>📦</span> Verileri Yedekle (JSON İndir)
         </button>
         <label class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 cursor-pointer transition block">
           <span>📂</span> Yedekten Geri Yükle (JSON)
@@ -369,9 +422,13 @@
 
   <!-- ================= JAVASCRIPT LOGIC ================= -->
   <script>
-    // 100% Clean Starter Dataset: Each category starts with 1 blank default row ready to type
-    function createCleanDataset() {
+    const DEFAULT_USER_NAME = "Kullanıcı";
+
+    // Clean Starter Dataset with User Profile
+    function createCleanDataset(userName = DEFAULT_USER_NAME) {
       return {
+        userName: userName,
+        lastSaved: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
         activeMonthId: 1,
         months: Array.from({ length: 12 }, (_, i) => ({
           id: i + 1,
@@ -394,7 +451,7 @@
       localStorage.removeItem('personal_clean_budget_data_v4');
       localStorage.removeItem('personal_clean_budget_data_v5');
 
-      const saved = localStorage.getItem('personal_clean_budget_data_v6');
+      const saved = localStorage.getItem('personal_clean_budget_data_v7');
       if (saved) {
         try {
           data = JSON.parse(saved);
@@ -405,9 +462,12 @@
         data = createCleanDataset();
       }
 
-      // Ensure each category has at least 1 default row ready
-      if (!data || !data.months || data.months.length !== 12) {
-        data = createCleanDataset();
+      // Ensure username & structure integrity
+      if (!data.userName) data.userName = DEFAULT_USER_NAME;
+      if (!data.lastSaved) data.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+      if (!data.months || data.months.length !== 12) {
+        data = createCleanDataset(data.userName);
       } else {
         data.months.forEach((m, idx) => {
           m.id = idx + 1;
@@ -418,11 +478,74 @@
         });
       }
 
+      updateHeaderProfile();
       render();
     }
 
     function save() {
-      localStorage.setItem('personal_clean_budget_data_v6', JSON.stringify(data));
+      localStorage.setItem('personal_clean_budget_data_v7', JSON.stringify(data));
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('save-toast');
+      const toastMsg = document.getElementById('save-toast-msg');
+      if (toast && toastMsg) {
+        toastMsg.innerText = msg;
+        toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+        }, 2200);
+      }
+    }
+
+    function manualSave() {
+      data.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      save();
+      updateHeaderProfile();
+      showToast(`✅ Değişiklikler başarıyla kaydedildi! (${data.lastSaved})`);
+    }
+
+    // Profile / Username Handlers
+    function updateHeaderProfile() {
+      const name = data.userName || DEFAULT_USER_NAME;
+      const initial = name.trim().charAt(0).toUpperCase() || 'K';
+      
+      const avatarEl = document.getElementById('user-avatar-initial');
+      if (avatarEl) avatarEl.innerText = initial;
+
+      const userNameEl = document.getElementById('header-user-name');
+      if (userNameEl) userNameEl.innerText = name;
+
+      const appTitleEl = document.getElementById('header-app-title');
+      if (appTitleEl) {
+        appTitleEl.innerText = name === DEFAULT_USER_NAME ? 'Bütçe Defteri' : `${name}'in Bütçesi`;
+      }
+
+      const timeEl = document.getElementById('header-last-saved-time');
+      if (timeEl) timeEl.innerText = `Kayıt: ${data.lastSaved || '--:--'}`;
+    }
+
+    function openUserNameModal() {
+      document.getElementById('input-username').value = data.userName || '';
+      document.getElementById('modal-username').classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('input-username').focus();
+        document.getElementById('input-username').select();
+      }, 50);
+    }
+
+    function closeUserNameModal() {
+      document.getElementById('modal-username').classList.add('hidden');
+    }
+
+    function saveUserName() {
+      const input = document.getElementById('input-username');
+      const newName = input.value.trim();
+      data.userName = newName || DEFAULT_USER_NAME;
+      manualSave();
+      closeUserNameModal();
     }
 
     function formatCurrency(val) {
@@ -464,7 +587,7 @@
       return monthCalculations;
     }
 
-    // Fast calculation updater (Does NOT touch or rebuild any input elements!)
+    // Fast calculation updater
     function updateCalculationsOnly() {
       const curMonth = getActiveMonth();
       const calcMap = computeAll();
@@ -679,7 +802,7 @@
         if (container) {
           const inputs = container.querySelectorAll('input[type="text"]');
           if (inputs.length > 0) {
-            const lastInput = inputs[inputs.length - 2] || inputs[0]; // first input of the row is the name field
+            const lastInput = inputs[inputs.length - 2] || inputs[0];
             lastInput.focus();
           }
         }
@@ -690,7 +813,6 @@
       const curMonth = getActiveMonth();
       if (curMonth[category]) {
         curMonth[category].splice(idx, 1);
-        // If the user deletes all rows, keep at least 1 clean default empty row ready
         if (curMonth[category].length === 0) {
           curMonth[category].push({ id: 'item-' + Date.now(), name: '', amount: '' });
         }
@@ -785,7 +907,7 @@
         curMonth.incomes = JSON.parse(JSON.stringify(prevMonth.incomes || []));
         curMonth.expenses = JSON.parse(JSON.stringify(prevMonth.expenses || []));
         curMonth.debts = JSON.parse(JSON.stringify(prevMonth.debts || []));
-        save();
+        manualSave();
         render();
       }
     }
@@ -796,15 +918,15 @@
         curMonth.incomes = [{ id: 'inc-' + Date.now(), name: '', amount: '' }];
         curMonth.expenses = [{ id: 'exp-' + Date.now(), name: '', amount: '' }];
         curMonth.debts = [{ id: 'dbt-' + Date.now(), name: '', amount: '' }];
-        save();
+        manualSave();
         render();
       }
     }
 
     function resetAllMonths() {
       if (confirm("Tüm 12 ayın verilerini tamamen silip sıfırdan boş bir tablo oluşturmak istiyor musunuz?")) {
-        data = createCleanDataset();
-        save();
+        data = createCleanDataset(data.userName);
+        manualSave();
         render();
       }
     }
@@ -819,7 +941,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `butce_defteri_yedek_${new Date().toISOString().slice(0,10)}.json`);
+      a.setAttribute("download", `${(data.userName || 'butce').toLowerCase().replace(/\s+/g, '_')}_defteri_${new Date().toISOString().slice(0,10)}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -835,7 +957,7 @@
           const parsed = JSON.parse(e.target.result);
           if (parsed && parsed.months) {
             data = parsed;
-            save();
+            manualSave();
             render();
             alert("Yedek dosyanız başarıyla yüklendi!");
           } else {
@@ -847,6 +969,14 @@
       };
       reader.readAsText(file);
     }
+
+    // Keyboard Shortcuts: Ctrl+S / Cmd+S to Save
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        manualSave();
+      }
+    });
 
     // Init
     document.addEventListener('DOMContentLoaded', init);
