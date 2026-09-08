@@ -78,16 +78,24 @@
   <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3.5 py-2.5 shadow-xl">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
       
-      <!-- Brand & User Profile -->
+      <!-- Brand & Active User Profile -->
       <div class="flex items-center space-x-2.5 min-w-0">
         <!-- Profile Avatar Button -->
-        <button onclick="openUserNameModal()" title="Kullanıcı Adını Değiştir" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0 text-slate-950 font-black text-xs active:scale-95 transition">
-          <span id="user-avatar-initial">K</span>
+        <button onclick="openProfileListModal()" title="Kullanıcı Değiştir / Profil Listesi" class="relative group w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-[2px] flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0 active:scale-95 transition">
+          <div class="w-full h-full rounded-[10px] bg-slate-900 overflow-hidden flex items-center justify-center">
+            <img id="header-user-photo" class="w-full h-full object-cover hidden" alt="Profil">
+            <span id="header-user-initial" class="text-emerald-400 font-extrabold text-sm">K</span>
+          </div>
+          <span class="absolute -bottom-1 -right-1 bg-emerald-500 text-slate-950 rounded-full w-4 h-4 text-[9px] font-black flex items-center justify-center border-2 border-slate-900">
+            🔄
+          </span>
         </button>
+
         <div class="min-w-0">
           <div class="flex items-center gap-1.5">
-            <h1 id="header-app-title" onclick="openUserNameModal()" class="text-sm sm:text-base font-extrabold text-white truncate cursor-pointer hover:text-emerald-400 transition leading-tight">
-              Bütçe Defteri
+            <h1 id="header-app-title" onclick="openProfileListModal()" class="text-sm sm:text-base font-extrabold text-white truncate cursor-pointer hover:text-emerald-400 transition leading-tight flex items-center gap-1">
+              <span id="header-title-text">Bütçe Defteri</span>
+              <span class="text-slate-400 text-xs font-normal">▼</span>
             </h1>
             <span id="save-status-badge" class="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
               🟢 Kaydedildi
@@ -95,7 +103,7 @@
           </div>
           <p class="text-[10px] text-slate-400 truncate flex items-center gap-1">
             <span>👤</span>
-            <span id="header-user-name" onclick="openUserNameModal()" class="cursor-pointer hover:underline text-slate-300 font-bold truncate">Kullanıcı</span>
+            <span id="header-user-name" onclick="openProfileListModal()" class="cursor-pointer hover:underline text-emerald-300 font-bold truncate">Kullanıcı 1</span>
             <span class="text-slate-600">•</span>
             <span id="header-last-saved-time" class="text-slate-400">Kayıt: --:--</span>
           </p>
@@ -109,9 +117,9 @@
           <span>💾</span>
           <span>Kaydet</span>
         </button>
-        <button onclick="copyPrevMonth()" title="Önceki Aydan Kalemleri Kopyala" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
-          <span>📋</span>
-          <span class="hidden md:inline">Önceki Aydan Kopyala</span>
+        <button onclick="openProfileListModal()" title="Kullanıcı Değiştir / Ekle" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1 active:scale-95 transition">
+          <span>👥</span>
+          <span class="hidden md:inline">Kullanıcılar</span>
         </button>
         <button onclick="toggleMenuModal()" title="Menü ve Araçlar" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold active:scale-95 transition flex items-center justify-center">
           ⚙️
@@ -184,6 +192,9 @@
         <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
           <span>📅</span> 12 Aylık Takvim:
         </span>
+        <button onclick="copyPrevMonth()" class="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1">
+          <span>📋</span> Önceki Aydan Kopyala
+        </button>
       </div>
 
       <div id="month-tabs" class="flex gap-1.5 overflow-x-auto pb-1 custom-scroll px-0.5">
@@ -311,8 +322,8 @@
           </h2>
           <p class="text-[10px] text-slate-400">1-12. Ay genel durum tablosu</p>
         </div>
-        <button onclick="resetAllMonths()" class="text-[10px] sm:text-xs font-semibold px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 active:scale-95 transition">
-          🧹 Tüm Ayları Sıfırla
+        <button onclick="resetCurrentUserData()" class="text-[10px] sm:text-xs font-semibold px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 active:scale-95 transition">
+          🧹 Bu Kullanıcının Aylarını Sıfırla
         </button>
       </div>
 
@@ -356,24 +367,82 @@
     </div>
   </aside>
 
-  <!-- ================= USER NAME MODAL ================= -->
-  <div id="modal-username" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <!-- ================= MODAL: MULTI-USER PROFILE LIST / SWITCHER ================= -->
+  <div id="modal-profile-list" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>👥</span> Kullanıcı Profilleri
+          </h3>
+          <p class="text-[10px] text-slate-400">İstediğiniz kullanıcının bütçesine geçin veya yeni ekleyin</p>
+        </div>
+        <button onclick="closeProfileListModal()" class="text-slate-400 hover:text-white p-1 text-base">✕</button>
+      </div>
+
+      <!-- Profile Cards List -->
+      <div id="profile-cards-container" class="space-y-2 max-h-72 overflow-y-auto custom-scroll pr-1">
+        <!-- Dynamically injected user profile cards -->
+      </div>
+
+      <!-- Add New User Button -->
+      <div class="pt-2 border-t border-slate-800 flex gap-2">
+        <button onclick="openCreateUserModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-98 transition">
+          <span>➕</span> Yeni Kullanıcı Ekle
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CREATE / EDIT USER PROFILE (WITH PHOTO) ================= -->
+  <div id="modal-user-form" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
-        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
-          <span>👤</span> Kullanıcı Adını Düzenle
+        <h3 id="user-form-modal-title" class="text-sm font-bold text-white flex items-center gap-1.5">
+          <span>👤</span> Kullanıcı Profili
         </h3>
-        <button onclick="closeUserNameModal()" class="text-slate-400 hover:text-white p-1 text-base">✕</button>
+        <button onclick="closeUserFormModal()" class="text-slate-400 hover:text-white p-1 text-base">✕</button>
       </div>
+
+      <!-- Photo Upload Area -->
+      <div class="flex flex-col items-center gap-2">
+        <div class="relative group">
+          <div class="w-20 h-20 rounded-2xl bg-slate-800 border-2 border-dashed border-slate-600 hover:border-emerald-500 overflow-hidden flex items-center justify-center shadow-lg transition">
+            <img id="user-form-photo-preview" class="w-full h-full object-cover hidden" alt="Önizleme">
+            <div id="user-form-avatar-placeholder" class="text-2xl font-bold text-emerald-400">
+              👤
+            </div>
+          </div>
+          <!-- Upload Button Overlay -->
+          <label class="absolute -bottom-1 -right-1 bg-emerald-600 hover:bg-emerald-500 text-white p-1.5 rounded-xl shadow cursor-pointer active:scale-95 transition flex items-center justify-center">
+            <span>📷</span>
+            <input type="file" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer">
+            Fotoğraf Seç
+            <input type="file" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
+          </label>
+          <span class="text-slate-600 text-xs">•</span>
+          <button type="button" onclick="removeUploadedPhoto()" class="text-[11px] font-semibold text-rose-400 hover:text-rose-300">
+            Kaldır
+          </button>
+        </div>
+      </div>
+
+      <!-- Name Input -->
       <div>
-        <label class="block text-[11px] text-slate-400 font-semibold mb-1">Adınız / Profil Başlığı:</label>
-        <input type="text" id="input-username" placeholder="Örn: Mehmet Doğan, Ev Bütçem" class="row-input w-full font-bold text-white">
+        <label class="block text-[11px] text-slate-400 font-semibold mb-1">Kullanıcı Adı:</label>
+        <input type="text" id="user-form-name-input" placeholder="Örn: Mehmet Doğan, Ayşe, Ev Bütçesi" class="row-input w-full font-bold text-white">
       </div>
+
+      <!-- Action Buttons -->
       <div class="flex gap-2 pt-1">
-        <button onclick="closeUserNameModal()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
+        <button onclick="closeUserFormModal()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
           İptal
         </button>
-        <button onclick="saveUserName()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-md">
+        <button onclick="saveUserForm()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-md">
           Kaydet
         </button>
       </div>
@@ -391,8 +460,8 @@
       </div>
 
       <div class="space-y-2 text-xs">
-        <button onclick="openUserNameModal(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
-          <span>👤</span> Kullanıcı Adını Değiştir
+        <button onclick="openProfileListModal(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
+          <span>👥</span> Kullanıcıları Yönet / Profil Değiştir
         </button>
         <button onclick="manualSave(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 font-bold text-left flex items-center gap-2 transition">
           <span>💾</span> Değişiklikleri Şimdi Kaydet
@@ -403,11 +472,11 @@
         <button onclick="clearCurrentMonth(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
           <span>🧹</span> Bu Ayın Kalemlerini Temizle
         </button>
-        <button onclick="resetAllMonths(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 font-semibold text-left flex items-center gap-2 transition">
-          <span>🗑️</span> Tüm Ayları Sıfırla (Temiz Sayfa)
+        <button onclick="resetCurrentUserData(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 font-semibold text-left flex items-center gap-2 transition">
+          <span>🗑️</span> Bu Kullanıcının Aylarını Sıfırla
         </button>
         <button onclick="exportJSON(); toggleMenuModal();" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 transition">
-          <span>📦</span> Verileri Yedekle (JSON İndir)
+          <span>📦</span> Tüm Verileri Yedekle (JSON İndir)
         </button>
         <label class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-left flex items-center gap-2 cursor-pointer transition block">
           <span>📂</span> Yedekten Geri Yükle (JSON)
@@ -422,26 +491,40 @@
 
   <!-- ================= JAVASCRIPT LOGIC ================= -->
   <script>
-    const DEFAULT_USER_NAME = "Kullanıcı";
+    // 12-Month Clean Starter Dataset Generator
+    function create12MonthsDataset() {
+      return Array.from({ length: 12 }, (_, i) => ({
+        id: i + 1,
+        name: `${i + 1}. Ay`,
+        incomes: [{ id: 'inc-' + (i+1) + '-1', name: '', amount: '' }],
+        expenses: [{ id: 'exp-' + (i+1) + '-1', name: '', amount: '' }],
+        debts: [{ id: 'dbt-' + (i+1) + '-1', name: '', amount: '' }]
+      }));
+    }
 
-    // Clean Starter Dataset with User Profile
-    function createCleanDataset(userName = DEFAULT_USER_NAME) {
+    // Default System State with Multi-User Architecture
+    function createInitialAppState() {
+      const firstUserId = 'user-' + Date.now();
       return {
-        userName: userName,
-        lastSaved: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-        activeMonthId: 1,
-        months: Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          name: `${i + 1}. Ay`,
-          incomes: [{ id: 'inc-' + (i+1) + '-1', name: '', amount: '' }],
-          expenses: [{ id: 'exp-' + (i+1) + '-1', name: '', amount: '' }],
-          debts: [{ id: 'dbt-' + (i+1) + '-1', name: '', amount: '' }]
-        }))
+        activeUserId: firstUserId,
+        users: [
+          {
+            id: firstUserId,
+            name: "Kullanıcı 1",
+            photo: null,
+            createdAt: new Date().toISOString(),
+            lastSaved: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+            activeMonthId: 1,
+            months: create12MonthsDataset()
+          }
+        ]
       };
     }
 
-    // State
-    let data = null;
+    // Global App State
+    let appState = null;
+    let tempPhotoBase64 = null;
+    let editingUserId = null;
 
     function init() {
       // Clear legacy storage keys
@@ -450,40 +533,58 @@
       localStorage.removeItem('personal_clean_budget_data_v3');
       localStorage.removeItem('personal_clean_budget_data_v4');
       localStorage.removeItem('personal_clean_budget_data_v5');
+      localStorage.removeItem('personal_clean_budget_data_v6');
+      localStorage.removeItem('personal_clean_budget_data_v7');
 
-      const saved = localStorage.getItem('personal_clean_budget_data_v7');
+      const saved = localStorage.getItem('personal_multi_user_budget_v8');
       if (saved) {
         try {
-          data = JSON.parse(saved);
+          appState = JSON.parse(saved);
         } catch(e) {
-          data = createCleanDataset();
+          appState = createInitialAppState();
         }
       } else {
-        data = createCleanDataset();
+        appState = createInitialAppState();
       }
 
-      // Ensure username & structure integrity
-      if (!data.userName) data.userName = DEFAULT_USER_NAME;
-      if (!data.lastSaved) data.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      // Integrity checks
+      if (!appState || !appState.users || appState.users.length === 0) {
+        appState = createInitialAppState();
+      }
 
-      if (!data.months || data.months.length !== 12) {
-        data = createCleanDataset(data.userName);
-      } else {
-        data.months.forEach((m, idx) => {
-          m.id = idx + 1;
-          m.name = `${idx + 1}. Ay`;
-          if (!m.incomes || m.incomes.length === 0) m.incomes = [{ id: 'inc-' + idx + '-1', name: '', amount: '' }];
-          if (!m.expenses || m.expenses.length === 0) m.expenses = [{ id: 'exp-' + idx + '-1', name: '', amount: '' }];
-          if (!m.debts || m.debts.length === 0) m.debts = [{ id: 'dbt-' + idx + '-1', name: '', amount: '' }];
-        });
+      let activeUser = getActiveUser();
+      if (!activeUser) {
+        appState.activeUserId = appState.users[0].id;
+        activeUser = appState.users[0];
+      }
+
+      // Ensure active user structure
+      if (!activeUser.months || activeUser.months.length !== 12) {
+        activeUser.months = create12MonthsDataset();
       }
 
       updateHeaderProfile();
       render();
     }
 
-    function save() {
-      localStorage.setItem('personal_clean_budget_data_v7', JSON.stringify(data));
+    function saveAppState() {
+      localStorage.setItem('personal_multi_user_budget_v8', JSON.stringify(appState));
+    }
+
+    function getActiveUser() {
+      if (!appState || !appState.users) return null;
+      return appState.users.find(u => u.id === appState.activeUserId) || appState.users[0];
+    }
+
+    function getActiveMonth() {
+      const user = getActiveUser();
+      if (!user) return null;
+      let m = user.months.find(x => x.id === user.activeMonthId);
+      if (!m) {
+        m = user.months[0];
+        user.activeMonthId = m.id;
+      }
+      return m;
     }
 
     function showToast(msg) {
@@ -501,73 +602,296 @@
     }
 
     function manualSave() {
-      data.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-      save();
+      const user = getActiveUser();
+      if (user) {
+        user.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      }
+      saveAppState();
       updateHeaderProfile();
-      showToast(`✅ Değişiklikler başarıyla kaydedildi! (${data.lastSaved})`);
+      showToast(`✅ Değişiklikler kaydedildi! (${user ? user.lastSaved : ''})`);
     }
 
-    // Profile / Username Handlers
+    // Header Profile Display
     function updateHeaderProfile() {
-      const name = data.userName || DEFAULT_USER_NAME;
-      const initial = name.trim().charAt(0).toUpperCase() || 'K';
-      
-      const avatarEl = document.getElementById('user-avatar-initial');
-      if (avatarEl) avatarEl.innerText = initial;
+      const user = getActiveUser();
+      if (!user) return;
 
-      const userNameEl = document.getElementById('header-user-name');
-      if (userNameEl) userNameEl.innerText = name;
+      const photoEl = document.getElementById('header-user-photo');
+      const initialEl = document.getElementById('header-user-initial');
+      const nameEl = document.getElementById('header-user-name');
+      const titleEl = document.getElementById('header-title-text');
+      const timeEl = document.getElementById('header-last-saved-time');
 
-      const appTitleEl = document.getElementById('header-app-title');
-      if (appTitleEl) {
-        appTitleEl.innerText = name === DEFAULT_USER_NAME ? 'Bütçe Defteri' : `${name}'in Bütçesi`;
+      if (user.photo) {
+        photoEl.src = user.photo;
+        photoEl.classList.remove('hidden');
+        initialEl.classList.add('hidden');
+      } else {
+        photoEl.classList.add('hidden');
+        initialEl.classList.remove('hidden');
+        const initLetter = (user.name || 'K').trim().charAt(0).toUpperCase();
+        initialEl.innerText = initLetter || 'K';
       }
 
-      const timeEl = document.getElementById('header-last-saved-time');
-      if (timeEl) timeEl.innerText = `Kayıt: ${data.lastSaved || '--:--'}`;
+      nameEl.innerText = user.name || 'Kullanıcı';
+      titleEl.innerText = `${user.name || 'Kullanıcı'}'ın Bütçesi`;
+      timeEl.innerText = `Kayıt: ${user.lastSaved || '--:--'}`;
     }
 
-    function openUserNameModal() {
-      document.getElementById('input-username').value = data.userName || '';
-      document.getElementById('modal-username').classList.remove('hidden');
+    // ================= MULTI-USER MANAGEMENT =================
+    function openProfileListModal() {
+      renderProfileCards();
+      document.getElementById('modal-profile-list').classList.remove('hidden');
+    }
+
+    function closeProfileListModal() {
+      document.getElementById('modal-profile-list').classList.add('hidden');
+    }
+
+    function renderProfileCards() {
+      const container = document.getElementById('profile-cards-container');
+      container.innerHTML = '';
+
+      appState.users.forEach(user => {
+        const isActive = user.id === appState.activeUserId;
+        const initial = (user.name || 'K').trim().charAt(0).toUpperCase();
+        
+        // Calculate user summary
+        const userCalculations = computeAllForUser(user);
+        const lastCalc = userCalculations[12] || { cumulativeSavings: 0 };
+        const totalSavings = lastCalc.cumulativeSavings;
+
+        const card = document.createElement('div');
+        card.className = `flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${
+          isActive 
+            ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md ring-1 ring-emerald-400/40' 
+            : 'bg-slate-800/70 border-slate-700 hover:border-slate-500 hover:bg-slate-800'
+        }`;
+
+        card.onclick = (e) => {
+          // If clicked action buttons inside card, do not switch
+          if (e.target.closest('.no-switch')) return;
+          switchUser(user.id);
+        };
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <!-- Avatar -->
+            <div class="w-11 h-11 rounded-xl bg-slate-900 border border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+              ${user.photo 
+                ? `<img src="${user.photo}" class="w-full h-full object-cover">` 
+                : `<span class="text-emerald-400 font-black text-sm">${initial}</span>`
+              }
+            </div>
+            <!-- Info -->
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-white text-xs sm:text-sm truncate">${user.name}</span>
+                ${isActive ? '<span class="text-[9px] bg-emerald-500/20 text-emerald-400 font-bold px-1.5 py-0.2 rounded border border-emerald-500/30">Aktif</span>' : ''}
+              </div>
+              <span class="text-[10px] text-slate-400">12 Ay Kasa: <strong class="${totalSavings >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${formatCurrency(totalSavings)}</strong></span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-1.5 no-switch shrink-0">
+            <button onclick="openEditUserModal('${user.id}')" title="Profili Düzenle" class="p-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 text-xs transition">
+              ✏️
+            </button>
+            ${appState.users.length > 1 ? `
+              <button onclick="deleteUser('${user.id}')" title="Kullanıcıyı Sil" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs transition">
+                🗑️
+              </button>
+            ` : ''}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchUser(userId) {
+      appState.activeUserId = userId;
+      saveAppState();
+      updateHeaderProfile();
+      render();
+      closeProfileListModal();
+      const u = getActiveUser();
+      showToast(`👤 "${u.name}" bütçesine geçildi!`);
+    }
+
+    function openCreateUserModal() {
+      closeProfileListModal();
+      editingUserId = null;
+      tempPhotoBase64 = null;
+      document.getElementById('user-form-modal-title').innerHTML = '<span>➕</span> Yeni Kullanıcı Oluştur';
+      document.getElementById('user-form-name-input').value = '';
+      
+      const imgPreview = document.getElementById('user-form-photo-preview');
+      const avatarPlaceholder = document.getElementById('user-form-avatar-placeholder');
+      imgPreview.classList.add('hidden');
+      avatarPlaceholder.classList.remove('hidden');
+
+      document.getElementById('modal-user-form').classList.remove('hidden');
       setTimeout(() => {
-        document.getElementById('input-username').focus();
-        document.getElementById('input-username').select();
+        document.getElementById('user-form-name-input').focus();
       }, 50);
     }
 
-    function closeUserNameModal() {
-      document.getElementById('modal-username').classList.add('hidden');
-    }
+    function openEditUserModal(userId) {
+      closeProfileListModal();
+      const user = appState.users.find(u => u.id === userId);
+      if (!user) return;
 
-    function saveUserName() {
-      const input = document.getElementById('input-username');
-      const newName = input.value.trim();
-      data.userName = newName || DEFAULT_USER_NAME;
-      manualSave();
-      closeUserNameModal();
-    }
+      editingUserId = userId;
+      tempPhotoBase64 = user.photo || null;
+      document.getElementById('user-form-modal-title').innerHTML = '<span>✏️</span> Profili Düzenle';
+      document.getElementById('user-form-name-input').value = user.name || '';
 
-    function formatCurrency(val) {
-      if (isNaN(val)) val = 0;
-      return new Intl.NumberFormat('tr-TR').format(Math.round(val)) + ' TL';
-    }
+      const imgPreview = document.getElementById('user-form-photo-preview');
+      const avatarPlaceholder = document.getElementById('user-form-avatar-placeholder');
 
-    function getActiveMonth() {
-      let m = data.months.find(x => x.id === data.activeMonthId);
-      if (!m) {
-        m = data.months[0];
-        data.activeMonthId = m.id;
+      if (user.photo) {
+        imgPreview.src = user.photo;
+        imgPreview.classList.remove('hidden');
+        avatarPlaceholder.classList.add('hidden');
+      } else {
+        imgPreview.classList.add('hidden');
+        avatarPlaceholder.classList.remove('hidden');
       }
-      return m;
+
+      document.getElementById('modal-user-form').classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('user-form-name-input').focus();
+      }, 50);
     }
 
-    // Calculations
-    function computeAll() {
+    function closeUserFormModal() {
+      document.getElementById('modal-user-form').classList.add('hidden');
+    }
+
+    // Photo Upload Optimization (Resizes to ~140px for lightweight localStorage storage)
+    function handleProfilePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 140;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          tempPhotoBase64 = compressedDataUrl;
+
+          const previewEl = document.getElementById('user-form-photo-preview');
+          previewEl.src = compressedDataUrl;
+          previewEl.classList.remove('hidden');
+          document.getElementById('user-form-avatar-placeholder').classList.add('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeUploadedPhoto() {
+      tempPhotoBase64 = null;
+      document.getElementById('user-form-photo-preview').classList.add('hidden');
+      document.getElementById('user-form-avatar-placeholder').classList.remove('hidden');
+    }
+
+    function saveUserForm() {
+      const nameInput = document.getElementById('user-form-name-input');
+      const name = nameInput.value.trim() || 'Yeni Kullanıcı';
+
+      if (editingUserId) {
+        // Edit existing user
+        const user = appState.users.find(u => u.id === editingUserId);
+        if (user) {
+          user.name = name;
+          user.photo = tempPhotoBase64;
+          user.lastSaved = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        }
+      } else {
+        // Create new user
+        const newUserId = 'user-' + Date.now();
+        const newUser = {
+          id: newUserId,
+          name: name,
+          photo: tempPhotoBase64,
+          createdAt: new Date().toISOString(),
+          lastSaved: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+          activeMonthId: 1,
+          months: create12MonthsDataset()
+        };
+        appState.users.push(newUser);
+        appState.activeUserId = newUserId;
+      }
+
+      saveAppState();
+      closeUserFormModal();
+      updateHeaderProfile();
+      render();
+      showToast(`✅ "${name}" profili kaydedildi!`);
+    }
+
+    function deleteUser(userId) {
+      if (appState.users.length <= 1) {
+        alert("En az 1 kullanıcı profili bulunmalıdır.");
+        return;
+      }
+      const targetUser = appState.users.find(u => u.id === userId);
+      if (!targetUser) return;
+
+      if (confirm(`'${targetUser.name}' profilini ve tüm bütçe verilerini silmek istediğinizden emin misiniz?`)) {
+        appState.users = appState.users.filter(u => u.id !== userId);
+        if (appState.activeUserId === userId) {
+          appState.activeUserId = appState.users[0].id;
+        }
+        saveAppState();
+        updateHeaderProfile();
+        render();
+        renderProfileCards();
+        showToast("🗑️ Profil silindi.");
+      }
+    }
+
+    function resetCurrentUserData() {
+      const user = getActiveUser();
+      if (!user) return;
+
+      if (confirm(`'${user.name}' kullanıcısının tüm 12 ay verilerini sıfırlamak istiyor musunuz?`)) {
+        user.months = create12MonthsDataset();
+        manualSave();
+        render();
+      }
+    }
+
+    // ================= CALCULATIONS =================
+    function computeAllForUser(user) {
       let runningSavings = 0;
       let monthCalculations = {};
 
-      data.months.forEach(m => {
+      (user.months || []).forEach(m => {
         const totalInc = (m.incomes || []).reduce((acc, i) => acc + (Number(i.amount) || 0), 0);
         const totalExp = (m.expenses || []).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
         const totalDebts = (m.debts || []).reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
@@ -587,8 +911,22 @@
       return monthCalculations;
     }
 
+    function computeAll() {
+      const user = getActiveUser();
+      if (!user) return {};
+      return computeAllForUser(user);
+    }
+
+    function formatCurrency(val) {
+      if (isNaN(val)) val = 0;
+      return new Intl.NumberFormat('tr-TR').format(Math.round(val)) + ' TL';
+    }
+
     // Fast calculation updater
     function updateCalculationsOnly() {
+      const user = getActiveUser();
+      if (!user) return;
+
       const curMonth = getActiveMonth();
       const calcMap = computeAll();
       const curCalc = calcMap[curMonth.id] || { totalInc: 0, totalExp: 0, totalDebts: 0, netMonth: 0, cumulativeSavings: 0 };
@@ -633,6 +971,9 @@
 
     // Full Structure Render Function
     function render() {
+      const user = getActiveUser();
+      if (!user) return;
+
       const curMonth = getActiveMonth();
       const calcMap = computeAll();
       const curCalc = calcMap[curMonth.id] || { totalInc: 0, totalExp: 0, totalDebts: 0, netMonth: 0, cumulativeSavings: 0 };
@@ -683,15 +1024,16 @@
     }
 
     function renderMonthTabs() {
+      const user = getActiveUser();
       const container = document.getElementById('month-tabs');
       container.innerHTML = '';
 
-      data.months.forEach(m => {
-        const isActive = m.id === data.activeMonthId;
+      user.months.forEach(m => {
+        const isActive = m.id === user.activeMonthId;
         const btn = document.createElement('button');
         btn.onclick = () => {
-          data.activeMonthId = m.id;
-          save();
+          user.activeMonthId = m.id;
+          saveAppState();
           render();
         };
         btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1 shrink-0 ${
@@ -752,18 +1094,19 @@
     }
 
     function renderMasterSummary(calcMap) {
+      const user = getActiveUser();
       const tbody = document.getElementById('master-summary-tbody');
       tbody.innerHTML = '';
 
-      data.months.forEach(m => {
+      user.months.forEach(m => {
         const c = calcMap[m.id] || { totalInc: 0, totalExp: 0, totalDebts: 0, netMonth: 0, cumulativeSavings: 0 };
-        const isCurrent = m.id === data.activeMonthId;
+        const isCurrent = m.id === user.activeMonthId;
 
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-800/50 transition cursor-pointer ${isCurrent ? 'bg-emerald-950/25 font-bold border-l-4 border-l-emerald-500' : ''}`;
         tr.onclick = () => {
-          data.activeMonthId = m.id;
-          save();
+          user.activeMonthId = m.id;
+          saveAppState();
           render();
         };
 
@@ -793,10 +1136,9 @@
         amount: ''
       });
 
-      save();
+      saveAppState();
       render();
 
-      // Automatically focus on the newly added row input so you can type immediately
       setTimeout(() => {
         const container = document.getElementById(`${category}-container`);
         if (container) {
@@ -816,12 +1158,12 @@
         if (curMonth[category].length === 0) {
           curMonth[category].push({ id: 'item-' + Date.now(), name: '', amount: '' });
         }
-        save();
+        saveAppState();
         render();
       }
     }
 
-    // Kalem Adı Girişi: Sadece harf ve metin kabul edilir, rakamlar (0-9) filtrelenir/engellenir
+    // Kalem Adı Girişi: Sadece harf ve metin kabul edilir, rakamlar (0-9) engellenir
     function updateRowName(category, idx, inputEl) {
       const cleanVal = inputEl.value.replace(/[0-9]/g, '');
       if (inputEl.value !== cleanVal) {
@@ -830,11 +1172,11 @@
       const curMonth = getActiveMonth();
       if (curMonth[category] && curMonth[category][idx]) {
         curMonth[category][idx].name = cleanVal;
-        save();
+        saveAppState();
       }
     }
 
-    // Tutar Girişi: Sadece rakamlar (0-9) kabul edilir, harfler ve geçersiz karakterler engellenir
+    // Tutar Girişi: Sadece rakamlar (0-9) kabul edilir, harfler engellenir
     function updateRowAmount(category, idx, inputEl) {
       const cleanVal = inputEl.value.replace(/[^0-9]/g, '');
       if (inputEl.value !== cleanVal) {
@@ -843,7 +1185,7 @@
       const curMonth = getActiveMonth();
       if (curMonth[category] && curMonth[category][idx]) {
         curMonth[category][idx].amount = cleanVal === '' ? '' : Number(cleanVal);
-        save();
+        saveAppState();
         updateCalculationsOnly();
       }
     }
@@ -894,16 +1236,17 @@
 
     // Month Operations
     function copyPrevMonth() {
-      const curIdx = data.months.findIndex(m => m.id === data.activeMonthId);
+      const user = getActiveUser();
+      const curIdx = user.months.findIndex(m => m.id === user.activeMonthId);
       if (curIdx <= 0) {
         alert("İlk aydasınız, kopyalanacak önceki bir ay yok.");
         return;
       }
 
-      const prevMonth = data.months[curIdx - 1];
-      const curMonth = data.months[curIdx];
+      const prevMonth = user.months[curIdx - 1];
+      const curMonth = user.months[curIdx];
 
-      if (confirm(`'${prevMonth.name}' içerisindeki tüm gelir, gider ve borç kalemleri '${curMonth.name}' içine kopyalansın mı?`)) {
+      if (confirm(`'${prevMonth.name}' içerisindeki tüm kalemler '${curMonth.name}' içine kopyalansın mı?`)) {
         curMonth.incomes = JSON.parse(JSON.stringify(prevMonth.incomes || []));
         curMonth.expenses = JSON.parse(JSON.stringify(prevMonth.expenses || []));
         curMonth.debts = JSON.parse(JSON.stringify(prevMonth.debts || []));
@@ -923,14 +1266,6 @@
       }
     }
 
-    function resetAllMonths() {
-      if (confirm("Tüm 12 ayın verilerini tamamen silip sıfırdan boş bir tablo oluşturmak istiyor musunuz?")) {
-        data = createCleanDataset(data.userName);
-        manualSave();
-        render();
-      }
-    }
-
     function toggleMenuModal() {
       const modal = document.getElementById('modal-menu');
       modal.classList.toggle('hidden');
@@ -938,10 +1273,10 @@
 
     // Export & Import
     function exportJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
       const a = document.createElement('a');
       a.setAttribute("href", dataStr);
-      a.setAttribute("download", `${(data.userName || 'butce').toLowerCase().replace(/\s+/g, '_')}_defteri_${new Date().toISOString().slice(0,10)}.json`);
+      a.setAttribute("download", `tum_butceler_yedek_${new Date().toISOString().slice(0,10)}.json`);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -955,11 +1290,28 @@
       reader.onload = (e) => {
         try {
           const parsed = JSON.parse(e.target.result);
-          if (parsed && parsed.months) {
-            data = parsed;
-            manualSave();
+          if (parsed && (parsed.users || parsed.months)) {
+            if (parsed.users) {
+              appState = parsed;
+            } else {
+              // Legacy single user conversion
+              appState = {
+                activeUserId: 'imported-user-1',
+                users: [{
+                  id: 'imported-user-1',
+                  name: parsed.userName || 'İçe Aktarılan Kullanıcı',
+                  photo: null,
+                  createdAt: new Date().toISOString(),
+                  lastSaved: parsed.lastSaved || '--:--',
+                  activeMonthId: parsed.activeMonthId || 1,
+                  months: parsed.months || create12MonthsDataset()
+                }]
+              };
+            }
+            saveAppState();
+            updateHeaderProfile();
             render();
-            alert("Yedek dosyanız başarıyla yüklendi!");
+            alert("Tüm bütçe ve profil verileriniz başarıyla yüklendi!");
           } else {
             alert("Hatalı dosya formatı!");
           }
@@ -970,7 +1322,7 @@
       reader.readAsText(file);
     }
 
-    // Keyboard Shortcuts: Ctrl+S / Cmd+S to Save
+    // Keyboard Shortcuts: Ctrl+S to Save
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
